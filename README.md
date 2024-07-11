@@ -11,3 +11,10 @@ SpringBoot 사용법
 - 3번은 새로 만든 jar 파일을 도커로 다시 빌드하기
 ## 만일 Docker-compose up 또는 Docker-compose up --build를 했을 때 오류가 발생한다면??
 ## -> DB가 켜져있는지 확인 해주세요 스프링 코드에 DB 연결하는 부분 있어서 DB 꺼져있으면 서버가 안켜져요
+
+
+### http://localhost:8080   
+<img width="400" alt="image" src="https://github.com/Mariojung123/KEBProject_BE/assets/115441849/cdc41562-8c10-498f-a72c-aecb3acd5f56">   
+
+### http://localhost:8080/swagger-ui/index.html#/home-controller/testApi   
+<img width="400" alt="image" src="https://github.com/Mariojung123/KEBProject_BE/assets/115441849/8d16dcad-26f1-4984-be22-7395e41d7ae0">
