@@ -1,0 +1,4 @@
+INSERT INTO user_info (user_id, user_pwd) VALUES ('mario', '1234');
+INSERT INTO user_info (user_id, user_pwd) VALUES ('luize', '1234');
+
+SELECT * FROM user_info;
