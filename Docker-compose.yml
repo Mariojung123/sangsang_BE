@@ -11,7 +11,6 @@ services:
       - "3306:3306"
     volumes:
       - db-data:/var/lib/mysql
-    restart: always
   
   backend:
     build:
@@ -22,7 +21,7 @@ services:
     depends_on:
       - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/springbootdb?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/kgu?useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: 1234
   
@@ -31,9 +30,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "4200:4200"
     depends_on:
       - backend
+    volumes:
+      - ./frontend/prompt_angular:/usr/src/app/prompt_angular
 
 volumes:
   db-data:
