@@ -1,6 +1,6 @@
-package com.example.KEBProject.repository;
+package com.example.SecureAndBox.repository;
 
-import com.example.KEBProject.entity.User;
+import com.example.SecureAndBox.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
