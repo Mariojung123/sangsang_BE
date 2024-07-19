@@ -13,19 +13,18 @@ import com.example.SecureAndBox.service.SecureCodeService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/code")
+@RequestMapping("/api/problem")
 @RequiredArgsConstructor
 public class CodeController {
 
 	private final SecureCodeService secureCodeService;
 
 
-	@PostMapping("/upload")
+	@PostMapping("/submit")
 	public ResponseEntity<String> handleFileUpload(@RequestBody CodeSubmission submission) {
 		//코드에 악의적인 코드가 없는지 검증하는 코드 구현 이후 파일로 저장
 		Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
 		Path codePath = tempDir.resolve("UserCode.java");
-
 		try {
 			// 파일 저장
 			Files.write(codePath, submission.getUserCode().getBytes());
