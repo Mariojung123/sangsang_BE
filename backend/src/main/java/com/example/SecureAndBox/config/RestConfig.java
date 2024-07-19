@@ -1,4 +1,4 @@
-package com.example.KEBProject.config;
+package com.example.SecureAndBox.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.example.KEBProject.controller;
+package com.example.SecureAndBox.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -7,8 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.example.KEBProject.dto.CodeSubmission;
-import com.example.KEBProject.service.SecureCodeService;
+import com.example.SecureAndBox.dto.CodeSubmission;
+import com.example.SecureAndBox.service.SecureCodeService;
 
 import lombok.RequiredArgsConstructor;
 

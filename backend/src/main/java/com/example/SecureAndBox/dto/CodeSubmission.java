@@ -1,4 +1,4 @@
-package com.example.KEBProject.dto;
+package com.example.SecureAndBox.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

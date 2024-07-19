@@ -1,4 +1,4 @@
-package com.example.KEBProject.service;
+package com.example.SecureAndBox.service;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 
 
-import com.example.KEBProject.dto.CodeSubmission;
+import com.example.SecureAndBox.dto.CodeSubmission;
 
 import lombok.RequiredArgsConstructor;
 

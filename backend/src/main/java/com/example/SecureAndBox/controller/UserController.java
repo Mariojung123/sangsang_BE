@@ -1,7 +1,7 @@
-package com.example.KEBProject.controller;
+package com.example.SecureAndBox.controller;
 
-import com.example.KEBProject.entity.User;
-import com.example.KEBProject.repository.UserRepository;
+import com.example.SecureAndBox.entity.User;
+import com.example.SecureAndBox.repository.UserRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;

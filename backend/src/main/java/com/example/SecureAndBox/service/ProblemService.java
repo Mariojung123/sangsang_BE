@@ -1,4 +1,4 @@
-package com.example.KEBProject.service;
+package com.example.SecureAndBox.service;
 
 import org.springframework.stereotype.Service;
 

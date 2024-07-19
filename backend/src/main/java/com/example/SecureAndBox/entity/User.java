@@ -1,4 +1,4 @@
-package com.example.KEBProject.entity;
+package com.example.SecureAndBox.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
