@@ -1,4 +1,4 @@
-package com.example.KEBProject.controller;
+package com.example.SecureAndBox.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

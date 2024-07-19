@@ -1,4 +1,4 @@
-package com.example.KEBProject;
+package com.example.SecureAndBox;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
