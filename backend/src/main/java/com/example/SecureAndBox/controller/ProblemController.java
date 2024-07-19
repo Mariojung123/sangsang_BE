@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/problem")
 @RequiredArgsConstructor
-public class CodeController {
+public class ProblemController {
 
 	private final SecureCodeService secureCodeService;
 
