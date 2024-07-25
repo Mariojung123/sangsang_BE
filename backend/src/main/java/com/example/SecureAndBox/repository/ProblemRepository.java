@@ -18,4 +18,6 @@ public interface ProblemRepository  extends JpaRepository<Problem, Long> {
 
 	@Query("SELECT p FROM Problem p WHERE p.topic = :topic ORDER BY p.difficulty")
 	List<Problem> findAllByTopic(@Param("topic") String topic);
+
+	Problem findByProblemId(Long problemId);
 }

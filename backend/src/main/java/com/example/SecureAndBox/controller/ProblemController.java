@@ -2,6 +2,8 @@ package com.example.SecureAndBox.controller;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
@@ -10,9 +12,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
+import com.example.SecureAndBox.etc.LanguageType;
 import com.example.SecureAndBox.service.ProblemService;
 import com.example.SecureAndBox.service.SecureCodeService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -70,5 +74,23 @@ public class ProblemController {
 	public ResponseEntity<?> getProblemListByDfficulty(@RequestParam(defaultValue="EASY") String difficulty)
 	{
 		return ResponseEntity.ok(problemService.getProblemListByDifficulty(difficulty));
+	}
+	@Operation(summary="스켈레톤 코드 가져오기")
+	@GetMapping("/skeleton-code")
+	public ResponseEntity<String> getSkeletonCode(@RequestParam("filename") String filename,@RequestParam LanguageType type) {
+		try {
+			String content = problemService.getSkeletonCode(filename,type);
+			return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8")
+				.body(content);
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("File not found or read error");
+		}
+	}
+	@GetMapping("/details")
+	public ResponseEntity<?> getProblemDetails(
+		@RequestParam Long problemId,
+		@RequestParam(defaultValue = "JAVA") LanguageType type) throws IOException {
+		return ResponseEntity.ok(problemService.getProblem(problemId,type));
 	}
 }

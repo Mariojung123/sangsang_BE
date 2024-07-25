@@ -1,12 +1,18 @@
 package com.example.SecureAndBox.service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 
+import com.example.SecureAndBox.dto.ProblemDetailsDto;
 import com.example.SecureAndBox.entity.Problem;
+import com.example.SecureAndBox.etc.LanguageType;
 import com.example.SecureAndBox.repository.ProblemRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -54,5 +60,25 @@ public class ProblemService {
 	public Object getProblemListByTopic(String topic) {
 		List<Problem> problems = problemRepository.findAllByTopic(topic);
 		return problems;
+	}
+
+	public String getSkeletonCode(String filename, LanguageType type) throws IOException {
+		Resource resource = new ClassPathResource("static/" + filename+"/"+ type.getKey()+"/"+filename+"."+type.getKey());
+		System.out.println("static/" + filename+"/"+ type.getKey()+"/"+filename+"."+type.getKey());
+		byte[] bdata = FileCopyUtils.copyToByteArray(resource.getInputStream());
+		return new String(bdata, StandardCharsets.UTF_8);
+	}
+
+	public Object getProblem(Long problemId, LanguageType type) throws IOException {
+		Problem problem = problemRepository.findByProblemId(problemId);
+		ProblemDetailsDto dto = ProblemDetailsDto.builder()
+			.problemId(problemId)
+			.title(problem.getTitle())
+			.difficulty(problem.getDifficulty())
+			.topic(problem.getTopic())
+			.description(problem.getDescription())
+			.skeletonCode(getSkeletonCode(problem.getTitle(),type))
+			.build();
+		return dto;
 	}
 }

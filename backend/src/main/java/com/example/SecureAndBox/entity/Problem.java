@@ -25,6 +25,8 @@ public class Problem {
 
 	private String difficulty;
 
+	private String description;
+
 	public Problem() {
 
 	}
