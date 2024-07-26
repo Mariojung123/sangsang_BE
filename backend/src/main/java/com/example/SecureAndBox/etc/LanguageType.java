@@ -1,5 +1,8 @@
 package com.example.SecureAndBox.etc;
 
+import lombok.Getter;
+
+@Getter
 public enum LanguageType {
 	JAVA("java"),
 	JAVASCRIPT("js"),
@@ -11,7 +14,5 @@ public enum LanguageType {
 		this.key = key;
 	}
 
-	public String getKey() {
-		return key;
-	}
+
 }
