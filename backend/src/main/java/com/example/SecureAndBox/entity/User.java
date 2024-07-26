@@ -1,5 +1,7 @@
 package com.example.SecureAndBox.entity;
 
+import com.example.SecureAndBox.etc.Role;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NonNull;
@@ -20,4 +22,7 @@ public class User {
 
     @Column(length = 15)
     private String user_pwd;
+
+    @Column()
+    private Role role;
 }
