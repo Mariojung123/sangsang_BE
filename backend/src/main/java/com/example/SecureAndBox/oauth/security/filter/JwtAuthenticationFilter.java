@@ -2,6 +2,7 @@ package com.example.SecureAndBox.oauth.security.filter;
 
 import java.io.IOException;
 
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import com.example.SecureAndBox.login.domain.Constants;
+import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
+import com.example.SecureAndBox.oauth.utils.JwtUtil;
 
 @Slf4j
 @Component
@@ -37,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			if (claims.get(Constants.USER_ROLE_CLAIM_NAME, String.class) == null) {
 				System.out.println(request.getRequestURI());
 				if (!request.getRequestURI().equals("/api/oauth/refresh"))
-					throw new InvalidTokenTypeException();
+					throw new AuthenticationServiceException("User role claim is missing in the token.");
 			}
 			UserAuthentication authentication = new UserAuthentication(userId, null, null, token);
 			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

@@ -3,10 +3,15 @@ package com.example.SecureAndBox.login.api;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +24,7 @@ import com.example.SecureAndBox.login.domain.enums.Provider;
 import com.example.SecureAndBox.login.dto.request.LoginRequestDto;
 import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
+import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +38,9 @@ public class AuthController {
 
 	private final AuthService authService;
 	private final KakaoLoginService kakaoLoginService;
+
+	private static final Logger logger = Logger.getLogger(AuthController.class.getName());
+
 
 	@Value("${kakao.api.key}")
 	private String apiKey;
@@ -64,12 +73,20 @@ public class AuthController {
 			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name can be null here
 			JwtTokenResponse tokens = authService.login(accessToken, request);
 			return ResponseEntity.ok(tokens);
+		} catch (AuthenticationException e) {
+			// Handle general authentication errors
+			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed.");
+		} catch (IOException e) {
+			// Handle IO-related errors
+			logger.log(Level.SEVERE, "IO error during Kakao callback processing: " + e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error.");
 		} catch (Exception e) {
-			throw new IOException();
-
+			// Catch-all for any other exceptions
+			logger.log(Level.SEVERE, "Unexpected error during Kakao callback processing: " + e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
 		}
 	}
-
 	/*	@PostMapping("/login")
 	public ApiResponse<JwtTokenResponse> login(
 		@NotNull @RequestHeader(Constants.PROVIDER_TOKEN_HEADER) String providerToken,
@@ -89,18 +106,18 @@ public class AuthController {
 	}*/
 
 	@PostMapping("/logout")
-	public ResponseModel<?> logout() {
+	public ResponseEntity<?> logout() {
 		UserAuthentication authentication = (UserAuthentication)SecurityContextHolder.getContext().getAuthentication();
 		authService.logout(authentication);
-		return ResponseModel.success("로그아웃에 성공하였습니다.");
+		return ResponseEntity.ok("로그아웃에 성공하였습니다.");
 	}
 
 	@PostMapping("/refresh-kakao-token")
-	public ResponseModel<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
+	public ResponseEntity<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
 		KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
 		LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null);
 		JwtTokenResponse tokens = authService.login(response, request);
-		return ResponseModel.success((tokens));
+		return ResponseEntity.ok((tokens));
 	}
 
 }

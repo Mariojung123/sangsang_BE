@@ -16,6 +16,9 @@ import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 
+import com.example.SecureAndBox.login.domain.Constants;
+import com.example.SecureAndBox.oauth.security.filter.JwtAuthenticationFilter;
+import com.example.SecureAndBox.oauth.security.filter.CustomJwtAuthenticationEntryPoint;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,7 +59,7 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:8282"));
+		configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setAllowCredentials(true);

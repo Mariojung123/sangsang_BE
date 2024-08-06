@@ -10,6 +10,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.example.SecureAndBox.login.api.KakaoFeignClient;
 import com.example.SecureAndBox.login.dto.SocialInfoDto;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
 import com.example.SecureAndBox.oauth.dto.KakaoUserDto;

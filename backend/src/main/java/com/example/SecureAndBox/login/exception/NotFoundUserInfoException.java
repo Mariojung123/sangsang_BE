@@ -1,8 +1,6 @@
 package com.example.SecureAndBox.login.exception;
 
-import static com.server.booyoungee.domain.login.exception.LoginExceptionCode.*;
-
-import com.server.booyoungee.global.exception.CustomException;
+import static com.example.SecureAndBox.login.exception.LoginExceptionCode.*;
 
 public class NotFoundUserInfoException extends CustomException {
 	public NotFoundUserInfoException() {

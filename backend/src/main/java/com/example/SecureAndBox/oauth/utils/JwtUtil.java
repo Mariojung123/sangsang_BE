@@ -17,9 +17,12 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.InvalidKeyException;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import com.example.SecureAndBox.login.domain.Constants;
+import com.example.SecureAndBox.entity.User;
 
 @Slf4j
 @Component
@@ -55,9 +58,11 @@ public class JwtUtil implements InitializingBean {
 				.parseClaimsJws(token)
 				.getBody();
 		} catch (ExpiredJwtException ex) {
-			throw new ExpiredJwtTokenException();
+			// Re-throw the exception with additional context
+			throw new ExpiredJwtException(ex.getHeader(), ex.getClaims(), "Token has expired");
 		} catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
-			throw new InvalidTokenTypeException();
+			// Provide a specific message for the invalid key
+			throw new InvalidKeyException("Invalid JWT key or claims");
 		}
 	}
 

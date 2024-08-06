@@ -1,6 +1,6 @@
 package com.example.SecureAndBox.login.api;
 
-
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;

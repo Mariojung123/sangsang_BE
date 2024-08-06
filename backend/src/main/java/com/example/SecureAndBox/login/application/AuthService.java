@@ -5,15 +5,18 @@ import java.io.IOException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.login.domain.Constants;
 import com.example.SecureAndBox.login.domain.enums.Provider;
 import com.example.SecureAndBox.login.dto.SocialInfoDto;
+
 import com.example.SecureAndBox.login.dto.request.LoginRequestDto;
 import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
 import com.example.SecureAndBox.login.exception.NotFoundUserInfoException;
@@ -49,7 +52,7 @@ public class AuthService {
 		if (request.provider().toString().equals(Provider.KAKAO.toString())) {
 			return kakaoLoginService.getInfo(providerToken);
 		} else {
-			throw new NotFoundUserInfoException();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Social login provider not supported: " + request.provider());
 		}
 	}
 
@@ -58,7 +61,7 @@ public class AuthService {
 			.orElseGet(() -> {
 				User newUser = User.builder()
 					.serialId(socialInfo.serialId())
-					.email(socialInfo.email())
+				//	.email(socialInfo.email())
 					.name(socialInfo.name())
 					.role(User.Role.USER)
 					.refreshToken("") // Initialize refreshToken as empty string
@@ -97,7 +100,7 @@ public class AuthService {
 		restTemplate.exchange(logoutUrl, HttpMethod.POST, entity, String.class);
 		try {
 			Long userId = Long.parseLong(authentication.getName());
-			User user = userRepository.findByUserId(userId).get();
+			User user = userRepository.findById(userId).get();
 			user.updateRefreshToken("");
 		} catch (HttpClientErrorException e) {
 			throw new RuntimeException("HTTP error while getting access token from Kakao: " + e.getStatusCode() + " - "
