@@ -1,13 +1,27 @@
 package com.example.SecureAndBox.service;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
+import com.example.SecureAndBox.entity.Problem;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,42 +29,70 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecureCodeService {
 	private final ProblemService problemService;
-	public String testSecureCode(Path codePath, CodeSubmission dto) throws IOException, InterruptedException {
+	private static final String PROBLEM_SERVER_URL = "http://localhost:8080/api/problem/verify";
 
-		//User user = userService.findByUserId(userid);
-		//문제 ID와 languageType으로 문제DB에 저장된 문제를 인지하고 이미지 이름을 지정하여 빌드하도록 한다.
-		String imageName = problemService.getImageNameForProblemType(dto.getProblemId(),dto.getLanguageType());
-		//이미지 ID는 미리 문제 도커 이미지를 Docker나 서버 파일 시스템에 업로드 해놓고 문제마다 바로 사용할 수 있도록 한다.
+	public CompletableFuture<String> verifyAndForwardCode(CodeSubmission submission) {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				// Encode the user code using Base64
+				String encodedUserCode = Base64.getEncoder().encodeToString(submission.getUserCode().getBytes(StandardCharsets.UTF_8));
 
+				// Update the submission with the encoded code
+				submission.setUserCode(encodedUserCode);
 
-		// Docker 컨테이너 실행하여 코드 빌드 및 테스트
-		//리소스 제한, 네트워크 격리, 읽기전용 파일시스템,커널기능제한
-		ProcessBuilder processBuilder = new ProcessBuilder(
-			"docker", "run", "--rm", "--network", "none", "--read-only",
-			"-m", "256m", "--cpus", "0.5", "--cap-drop", "all",
-			"-v", codePath.toAbsolutePath() + ":/app/src/main/java/com/example/SecureCode.java",
-			imageName, "/bin/sh", "-c",
-			"javac /app/src/main/java/com/example/SecureCode.java && java -cp /app/src/main/java com.example.SecureCode"
-		);
-		//네트워크를 격리시켰기 때문에 결과를 response 받기 위해선
-		//컨테이너 내부의 실행 결과를 호스트로 리다이렉트하여 실행 결과를 수집합니다.
-		Process process = processBuilder.start();
+				// Serialize to JSON
+				ObjectMapper objectMapper = new ObjectMapper();
+				String jsonPayload = objectMapper.writeValueAsString(submission);
 
-		// 실행 결과를 읽기
-		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		StringBuilder result = new StringBuilder();
-		String line;
-		while ((line = reader.readLine()) != null) {
-			result.append(line).append("\n");
-		}
+				// Send the request
+				HttpClient client = HttpClient.newHttpClient();
+				HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(PROBLEM_SERVER_URL))
+					.header("Content-Type", "application/json")
+					.POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
+					.build();
 
-		int exitCode = process.waitFor();
+				return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+					.thenApply(HttpResponse::body)
+					.join();
 
-		if (exitCode == 0) {
-			return "Secure code implementation is valid.\n" + result.toString();
-		} else {
-			return "Secure code implementation failed.\n" + result.toString();
-		}
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to forward code to problem server.", e);
+			}
+		});
 	}
+
+	public CompletableFuture<String> forwardToProblemServer(CodeSubmission submission) {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				HttpClient client = HttpClient.newHttpClient();
+
+				// Serialize the CodeSubmission object to JSON
+				ObjectMapper objectMapper = new ObjectMapper();
+				String jsonPayload = objectMapper.writeValueAsString(submission);
+
+				// Build the POST request with JSON payload
+				HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(PROBLEM_SERVER_URL))
+					.header("Content-Type", "application/json")
+					.POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
+					.build();
+
+				// Send the request asynchronously and get the response
+				return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+					.thenApply(HttpResponse::body) // Process the whole response body
+					.join(); // Block to get the result for demonstration purposes
+
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to forward code to problem server.", e);
+			}
+		});
+	}
+
+	private String processServerResponse(String response) {
+		// Process the response from the problem server and return a meaningful message
+		return "Server Response: " + response;
+	}
+
 
 }

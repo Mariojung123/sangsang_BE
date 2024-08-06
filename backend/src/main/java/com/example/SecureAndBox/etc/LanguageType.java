@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum LanguageType {
-	JAVA("java"),
-	JAVASCRIPT("js"),
+	PHP("php"),
+	PYTHON("py"),
 	CPP("cpp");
 
 	private String key;

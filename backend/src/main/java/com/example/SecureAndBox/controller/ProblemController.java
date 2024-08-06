@@ -5,11 +5,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
 import com.example.SecureAndBox.etc.LanguageType;
@@ -29,30 +33,44 @@ public class ProblemController {
 	private final ProblemService problemService;
 
 
-	@PostMapping("/submit")
-	public ResponseEntity<String> handleFileUpload(@RequestBody CodeSubmission submission) {
-		//코드에 악의적인 코드가 없는지 검증하는 코드 구현 이후 파일로 저장
-		Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-		Path codePath = tempDir.resolve("UserCode.java");
-		try {
-			// 파일 저장
-			Files.write(codePath, submission.getUserCode().getBytes());
 
-			// 시큐어 코딩 테스트 실행
-			String result = secureCodeService.testSecureCode(codePath, submission);
-			return ResponseEntity.ok(result);
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-			return ResponseEntity.status(500).body("Server error occurred.");
-		} finally {
-			// 임시 파일 삭제
-			try {
-				Files.deleteIfExists(codePath);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+	@PostMapping("/verify")
+	public ResponseEntity<String> handleCodeSubmission(@RequestBody CodeSubmission submission) {
+		try {
+			// Decode the Base64 encoded user code
+			byte[] decodedBytes = Base64.getDecoder().decode(submission.getUserCode());
+			String decodedUserCode = new String(decodedBytes, StandardCharsets.UTF_8);
+
+			// Log received values
+			System.out.println("Received Code Submission:");
+			System.out.println("Problem ID: " + submission.getProblemId());
+			System.out.println("Language Type: " + submission.getLanguageType());
+			System.out.println("Code Content: " + decodedUserCode);
+
+			// Process the code as needed
+			String result = processCodeSubmission(submission.getProblemId(), submission.getLanguageType(), decodedUserCode);
+
+			return ResponseEntity.status(HttpStatus.OK).body(result);
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid code submission.");
 		}
 	}
+
+	private String processCodeSubmission(Long problemId, String languageType, String userCode) {
+		// Simulate code execution or verification and return result
+		return "Processed code for problem ID " + problemId;
+	}
+
+	@Async // Mark the method as asynchronous
+	@PostMapping("/submit") // Change to POST for receiving large data
+	public CompletableFuture<ResponseEntity<String>> handleFileUpload(@RequestBody CodeSubmission submission) {
+		return secureCodeService.verifyAndForwardCode(submission)
+			.thenApply(response -> ResponseEntity.status(HttpStatus.OK).body(response))
+			.exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("An error occurred: " + ex.getMessage()));
+	}
+
 
 	@GetMapping("")
 	public ResponseEntity<?> getProblemList(

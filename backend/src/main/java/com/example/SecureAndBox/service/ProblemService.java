@@ -28,6 +28,11 @@ public class ProblemService {
 		return "login";
 	}
 
+	public Problem findById(Long id)
+	{
+		return problemRepository.findByProblemId(id);
+	}
+
 
 
 	String getImageNameForProblemType(Long promId, String languageType) {
@@ -74,10 +79,10 @@ public class ProblemService {
 		ProblemDetailsDto dto = ProblemDetailsDto.builder()
 			.problemId(problemId)
 			.title(problem.getTitle())
-			.difficulty(problem.getDifficulty())
+			//.difficulty(problem.getDifficulty())
 			.topic(problem.getTopic())
 			.description(problem.getDescription())
-			.skeletonCode(getSkeletonCode(problem.getTitle(),type))
+		//	.skeletonCode(getSkeletonCode(problem.getTitle(),type))
 			.build();
 		return dto;
 	}
