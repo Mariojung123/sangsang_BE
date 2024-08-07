@@ -34,39 +34,18 @@ public class ProblemController {
 
 
 
-	@PostMapping("/verify")
-	public ResponseEntity<String> handleCodeSubmission(@RequestBody CodeSubmission submission) {
-		try {
-			// Decode the Base64 encoded user code
-			byte[] decodedBytes = Base64.getDecoder().decode(submission.getUserCode());
-			String decodedUserCode = new String(decodedBytes, StandardCharsets.UTF_8);
-
-			// Log received values
-			System.out.println("Received Code Submission:");
-			System.out.println("Problem ID: " + submission.getProblemId());
-			System.out.println("Language Type: " + submission.getLanguageType());
-			System.out.println("Code Content: " + decodedUserCode);
-
-			// Process the code as needed
-			String result = processCodeSubmission(submission.getProblemId(), submission.getLanguageType(), decodedUserCode);
-
-			return ResponseEntity.status(HttpStatus.OK).body(result);
-
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid code submission.");
-		}
-	}
-
 	private String processCodeSubmission(Long problemId, String languageType, String userCode) {
 		// Simulate code execution or verification and return result
 		return "Processed code for problem ID " + problemId;
 	}
 
-	@Async // Mark the method as asynchronous
-	@PostMapping("/submit") // Change to POST for receiving large data
+	@Async
+	@PostMapping("/submit")
 	public CompletableFuture<ResponseEntity<String>> handleFileUpload(@RequestBody CodeSubmission submission) {
+
+
 		return secureCodeService.verifyAndForwardCode(submission)
-			.thenApply(response -> ResponseEntity.status(HttpStatus.OK).body(response))
+			.thenApply(response -> ResponseEntity.ok(response))
 			.exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body("An error occurred: " + ex.getMessage()));
 	}
