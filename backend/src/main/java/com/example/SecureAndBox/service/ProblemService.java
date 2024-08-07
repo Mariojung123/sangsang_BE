@@ -69,7 +69,6 @@ public class ProblemService {
 
 	public String getSkeletonCode(String filename, LanguageType type) throws IOException {
 		Resource resource = new ClassPathResource("static/" + filename+"/"+ type.getKey()+"/"+filename+"."+type.getKey());
-		System.out.println("static/" + filename+"/"+ type.getKey()+"/"+filename+"."+type.getKey());
 		byte[] bdata = FileCopyUtils.copyToByteArray(resource.getInputStream());
 		return new String(bdata, StandardCharsets.UTF_8);
 	}

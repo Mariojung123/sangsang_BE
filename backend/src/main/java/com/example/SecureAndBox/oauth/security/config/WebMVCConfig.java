@@ -32,7 +32,7 @@ public class WebMVCConfig implements WebMvcConfigurer {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true);
-		config.addAllowedOriginPattern("http://localhost:8080");
+		config.addAllowedOriginPattern("http://localhost:63342");
 		config.addAllowedOriginPattern("http://localhost:8000");
 		config.addAllowedOriginPattern(
 			"https://kauth.kakao.com");// You can specify allowed origins here

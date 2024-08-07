@@ -88,9 +88,7 @@ public class AuthService {
 
 	@Transactional
 	public void logout(UserAuthentication authentication) {
-		System.out.println("JWT: token: " + authentication.getAccessToken());
 		String accessToken = jwtUtil.getOriginalAccessToken(authentication.getAccessToken());
-		System.out.println("orginal token: " + accessToken);
 		String logoutUrl = "https://kapi.kakao.com/v1/user/logout";
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

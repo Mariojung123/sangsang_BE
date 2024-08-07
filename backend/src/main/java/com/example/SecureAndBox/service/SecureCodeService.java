@@ -17,6 +17,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
@@ -31,68 +32,44 @@ public class SecureCodeService {
 	private final ProblemService problemService;
 	private static final String PROBLEM_SERVER_URL = "http://localhost:8080/api/problem/verify";
 
+
+	private final ObjectMapper objectMapper;
+
+	private final HttpClient httpClient = HttpClient.newHttpClient();
+
 	public CompletableFuture<String> verifyAndForwardCode(CodeSubmission submission) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				// Encode the user code using Base64
-				String encodedUserCode = Base64.getEncoder().encodeToString(submission.getUserCode().getBytes(StandardCharsets.UTF_8));
+				// Encode user code to Base64
+			//	String encodedUserCode = Base64.getEncoder()
+				//	.encodeToString(submission.getUserCode().getBytes(StandardCharsets.UTF_8));
+			//	submission.setUserCode(encodedUserCode);
 
-				// Update the submission with the encoded code
-				submission.setUserCode(encodedUserCode);
-
-				// Serialize to JSON
-				ObjectMapper objectMapper = new ObjectMapper();
+				// Convert CodeSubmission object to JSON
 				String jsonPayload = objectMapper.writeValueAsString(submission);
 
-				// Send the request
-				HttpClient client = HttpClient.newHttpClient();
+				// Create an HTTP request
 				HttpRequest request = HttpRequest.newBuilder()
 					.uri(URI.create(PROBLEM_SERVER_URL))
 					.header("Content-Type", "application/json")
-					.POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
+					.POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
 					.build();
 
-				return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+				// Send the request asynchronously
+				return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
 					.thenApply(HttpResponse::body)
+					.exceptionally(ex -> {
+						// Throw a CompletionException with a message and cause
+						throw new CompletionException("Error during HTTP request", ex);
+					})
 					.join();
-
 			} catch (Exception e) {
-				throw new RuntimeException("Failed to forward code to problem server.", e);
+				// Handle exceptions that occur outside of CompletableFuture
+				throw new CompletionException("Error processing code submission", e);
 			}
 		});
 	}
-
-	public CompletableFuture<String> forwardToProblemServer(CodeSubmission submission) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				HttpClient client = HttpClient.newHttpClient();
-
-				// Serialize the CodeSubmission object to JSON
-				ObjectMapper objectMapper = new ObjectMapper();
-				String jsonPayload = objectMapper.writeValueAsString(submission);
-
-				// Build the POST request with JSON payload
-				HttpRequest request = HttpRequest.newBuilder()
-					.uri(URI.create(PROBLEM_SERVER_URL))
-					.header("Content-Type", "application/json")
-					.POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
-					.build();
-
-				// Send the request asynchronously and get the response
-				return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-					.thenApply(HttpResponse::body) // Process the whole response body
-					.join(); // Block to get the result for demonstration purposes
-
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to forward code to problem server.", e);
-			}
-		});
-	}
-
-	private String processServerResponse(String response) {
-		// Process the response from the problem server and return a meaningful message
-		return "Server Response: " + response;
-	}
-
-
 }
+
+
+

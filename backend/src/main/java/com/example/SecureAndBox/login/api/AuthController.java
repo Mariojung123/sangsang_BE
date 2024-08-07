@@ -68,7 +68,6 @@ public class AuthController {
 	@GetMapping("/callback")
 	public ResponseEntity<?> kakaoCallback(@RequestParam String code) throws IOException {
 		try {
-			System.out.println("callback start");
 			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
 			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name can be null here
 			JwtTokenResponse tokens = authService.login(accessToken, request);
@@ -87,24 +86,6 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
 		}
 	}
-	/*	@PostMapping("/login")
-	public ApiResponse<JwtTokenResponse> login(
-		@NotNull @RequestHeader(Constants.PROVIDER_TOKEN_HEADER) String providerToken,
-		@Valid @RequestBody LoginRequestDto request) throws IOException {
-		return ApiResponse.success(authService.login(providerToken, request));
-	}*/
-
-/*	@PostMapping("/refresh")
-	public ApiResponse<JwtTokenResponse> refreshToken(
-		@RequestHeader(Constants.AUTHORIZATION_HEADER) String authorizationHeader) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith(Constants.BEARER_PREFIX)) {
-			throw new CustomException(ErrorCode.INVALID_JWT);
-		}
-		String refreshToken = authorizationHeader.substring(Constants.BEARER_PREFIX.length());
-		System.out.println("token: " + refreshToken);
-		return ApiResponse.success(authService.refresh(refreshToken));
-	}*/
-
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout() {
 		UserAuthentication authentication = (UserAuthentication)SecurityContextHolder.getContext().getAuthentication();

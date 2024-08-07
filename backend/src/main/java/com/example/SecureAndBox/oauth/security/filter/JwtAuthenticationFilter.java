@@ -40,7 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			Claims claims = jwtUtil.getTokenBody(token);
 			Long userId = claims.get(Constants.USER_ID_CLAIM_NAME, Long.class);
 			if (claims.get(Constants.USER_ROLE_CLAIM_NAME, String.class) == null) {
-				System.out.println(request.getRequestURI());
 				if (!request.getRequestURI().equals("/api/oauth/refresh"))
 					throw new AuthenticationServiceException("User role claim is missing in the token.");
 			}
