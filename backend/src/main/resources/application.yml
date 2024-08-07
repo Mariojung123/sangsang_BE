@@ -48,3 +48,5 @@ springdoc:
     doc-expansion: none
   paths-to-match:
     - /api/**
+code:
+  host: ${CODE.HOST}

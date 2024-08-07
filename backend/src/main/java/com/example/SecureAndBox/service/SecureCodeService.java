@@ -1,4 +1,5 @@
 package com.example.SecureAndBox.service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -25,12 +26,13 @@ import com.example.SecureAndBox.entity.Problem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
-
 @Service
 @RequiredArgsConstructor
 public class SecureCodeService {
 	private final ProblemService problemService;
-	private static final String PROBLEM_SERVER_URL = "http://localhost:8080/api/problem/verify";
+
+	@Value("${code.host}")
+	private String PROBLEM_SERVER_URL;
 
 
 	private final ObjectMapper objectMapper;
@@ -46,7 +48,7 @@ public class SecureCodeService {
 			//	submission.setUserCode(encodedUserCode);
 
 				// Convert CodeSubmission object to JSON
-				String jsonPayload = objectMapper.writeValueAsString(submission);
+				String jsonPayload = objectMapper.writeValueAsString(submission.getUserCode());
 
 				// Create an HTTP request
 				HttpRequest request = HttpRequest.newBuilder()
