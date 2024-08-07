@@ -1,28 +1,22 @@
 package com.example.SecureAndBox.service;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
+
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
 import java.net.URI;
-import java.net.URLEncoder;
+
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
+
 
 import com.example.SecureAndBox.dto.CodeSubmission;
-import com.example.SecureAndBox.entity.Problem;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -48,7 +42,8 @@ public class SecureCodeService {
 			//	submission.setUserCode(encodedUserCode);
 
 				// Convert CodeSubmission object to JSON
-				String jsonPayload = objectMapper.writeValueAsString(submission.getUserCode());
+				CodePayload payload = new CodePayload(submission.getUserCode());
+				String jsonPayload = objectMapper.writeValueAsString(payload);
 
 				// Create an HTTP request
 				HttpRequest request = HttpRequest.newBuilder()
@@ -59,17 +54,51 @@ public class SecureCodeService {
 
 				// Send the request asynchronously
 				return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-					.thenApply(HttpResponse::body)
+					.thenApply(response -> handleServerResponse(response.body()))
 					.exceptionally(ex -> {
-						// Throw a CompletionException with a message and cause
 						throw new CompletionException("Error during HTTP request", ex);
 					})
 					.join();
 			} catch (Exception e) {
-				// Handle exceptions that occur outside of CompletableFuture
 				throw new CompletionException("Error processing code submission", e);
 			}
 		});
+	}
+
+	static class CodePayload {
+		private final String input;
+
+		public CodePayload(String input) {
+			this.input = input;
+		}
+
+		public String getInput() {
+			return input;
+		}
+	}
+
+	// Handle server response
+	private String handleServerResponse(String responseBody) {
+		try {
+			if (responseBody.contains("works\nhacked\n")) {
+				return "Success: Code executed without errors.";
+			} else {
+				// Attempt to parse JSON response
+				JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+				// Check if the response contains a message of invalid code
+				if (jsonNode.has("message") && jsonNode.get("message").asText().contains("Invalid code")) {
+					String output = jsonNode.get("output").asText();
+					return "Error: Invalid code detected. Details: " + output;
+				} else if (jsonNode.has("error")) {
+					String errorDetails = jsonNode.get("error").asText();
+					return "Error: " + errorDetails;
+				}
+			}
+			return "Unexpected response format.";
+		} catch (Exception e) {
+			return "Error processing server response: " + e.getMessage();
+		}
 	}
 }
 
