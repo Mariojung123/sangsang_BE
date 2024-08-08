@@ -1,5 +1,7 @@
 package com.example.SecureAndBox.dto;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -9,9 +11,7 @@ import lombok.Getter;
 
 
 
-@Data
 @Getter
-@Builder
 public class ProblemRequestDto {
 
 	private String image;
@@ -22,7 +22,7 @@ public class ProblemRequestDto {
 	private Type type;
 	private String difficulty;
 
-	@Data
+
 	@Getter
 	@Builder
 	public static class Tag {
@@ -30,11 +30,16 @@ public class ProblemRequestDto {
 		private String value;
 	}
 
-	@Data
+
 	@Getter
 	@Builder
 	public static class Type {
 		private String php;
 		private String python;
 	}
+
+	public List<Tag> getTag() {
+		return tag != null ? new ArrayList<>(tag) : Collections.emptyList();
+	}
+
 }

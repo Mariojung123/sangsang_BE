@@ -1,6 +1,8 @@
 package com.example.SecureAndBox.entity;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +70,22 @@ public class Problem {
 		this.difficulty = difficulty;
 		this.description = description;
 		this.image = image;
-		this.tags = tags != null ? Collections.unmodifiableList(tags) : null;
-		this.type = type != null ? Collections.unmodifiableMap(type) : null;
+		this.tags = tags != null ? Collections.unmodifiableList(new ArrayList<>(tags)) : null;
+		this.type = type != null ? Collections.unmodifiableMap(new HashMap<>(type)) : null;
+	}
+
+	public static class ProblemBuilder {
+		private List<Map<String, String>> tags;
+		private Map<String, String> type;
+
+		public ProblemBuilder tags(List<Map<String, String>> tags) {
+			this.tags = tags != null ? new ArrayList<>(tags) : null;
+			return this;
+		}
+
+		public ProblemBuilder type(Map<String, String> type) {
+			this.type = type != null ? new HashMap<>(type) : null;
+			return this;
+		}
 	}
 }

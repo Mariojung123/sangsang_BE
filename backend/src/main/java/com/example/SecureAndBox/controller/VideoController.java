@@ -31,19 +31,16 @@ public class VideoController {
 	public ResponseEntity<?> getVideoList(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size
-	)
-	{
+	) {
 		Pageable pageable = PageRequest.of(page, size);
 		return ResponseEntity.ok(videoService.getList(pageable));
 	}
 
 	@GetMapping("/details")
-	public ResponseEntity<?> getVideo(
-		@RequestParam Long videoId
-	)
-	{
+	public ResponseEntity<?> getVideo(@RequestParam Long videoId) {
 		return ResponseEntity.ok(videoService.getVideo(videoId));
 	}
+
 	@Operation(summary = "영상 추가 -> 어드민만 가능")
 	@PostMapping("")
 	public ResponseEntity<?> createVideo(@RequestParam String title, @RequestParam String url) {
@@ -57,11 +54,10 @@ public class VideoController {
 
 	@Operation(summary = "영상 삭제 -> 어드민만 가능")
 	@DeleteMapping("")
-	public ResponseEntity<?> deleteVideo(Long videoId)
-	{
+	public ResponseEntity<?> deleteVideo(Long videoId) {
 		try {
 			videoService.deleteVideo(videoId);
-			return ResponseEntity.ok("동영상이 삭제되었습ㄴ디ㅏ.");
+			return ResponseEntity.ok("동영상이 삭제되었습니다.");
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");
 		}

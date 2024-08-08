@@ -1,5 +1,6 @@
 package com.example.SecureAndBox.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,12 +37,16 @@ public class UserProblemService {
 			})
 			.collect(Collectors.toList());
 
-		ProblemDashBoardDto dto = ProblemDashBoardDto.builder()
-			.problemList(problemList)
-			.count(problemList.size())
-			.build();
-		return dto;
+		// 방어적 복사를 통해 전달된 리스트의 새로운 복사본을 생성
+		List<ProblemDto> copiedProblemList = problemList != null ? new ArrayList<>(problemList) : new ArrayList<>();
 
+		// ProblemDashBoardDto 객체를 생성하면서 복사본을 사용
+		ProblemDashBoardDto dto = ProblemDashBoardDto.builder()
+			.problemList(copiedProblemList)
+			.count(copiedProblemList.size())
+			.build();
+
+		return dto;
 	}
 
 	public void saveRelation(UserProblemRelation up) {
