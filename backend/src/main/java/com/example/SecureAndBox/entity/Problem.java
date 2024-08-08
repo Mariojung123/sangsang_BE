@@ -1,5 +1,10 @@
 package com.example.SecureAndBox.entity;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -8,14 +13,20 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Entity //엔티티 정의
-@Table(name="problem") //사용하지 않으면 클래스 이름이 테이블 이름이 됨
-@Getter //lombok getter
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
+
+@Entity
+@Table(name = "problem")
+@Getter
 @Builder
-@AllArgsConstructor
+@NoArgsConstructor
 public class Problem {
-	@Id //기본키를 의미. 반드시 기본키를 가져야함.
+
+	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long problemId;
 
@@ -27,7 +38,37 @@ public class Problem {
 
 	private String description;
 
-	public Problem() {
+	private String image;
 
+	@Column(name = "tags", columnDefinition = "json")
+	@JdbcTypeCode(SqlTypes.JSON)
+	private List<Map<String, String>> tags;
+
+	@Column(name = "type", columnDefinition = "json")
+	@JdbcTypeCode(SqlTypes.JSON)
+	private Map<String, String> type;
+
+
+	public Map<String, String> getType() {
+		return type != null ? Collections.unmodifiableMap(type) : Collections.emptyMap();
+	}
+
+	public List<Map<String, String>> getTags() {
+		return tags != null ? Collections.unmodifiableList(tags) : Collections.emptyList();
+	}
+
+
+
+	@Builder
+	public Problem(Long problemId, String topic, String title, String difficulty, String description,
+		String image, List<Map<String, String>> tags, Map<String, String> type) {
+		this.problemId = problemId;
+		this.topic = topic;
+		this.title = title;
+		this.difficulty = difficulty;
+		this.description = description;
+		this.image = image;
+		this.tags = tags != null ? Collections.unmodifiableList(tags) : null;
+		this.type = type != null ? Collections.unmodifiableMap(type) : null;
 	}
 }

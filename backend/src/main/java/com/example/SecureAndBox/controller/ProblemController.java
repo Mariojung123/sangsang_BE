@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,6 +17,7 @@ import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
+import com.example.SecureAndBox.dto.ProblemRequestDto;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.etc.LanguageType;
 import com.example.SecureAndBox.login.interceptor.UserId;
@@ -94,5 +96,13 @@ public class ProblemController {
 		@RequestParam Long problemId,
 		@RequestParam(defaultValue = "JAVA") LanguageType type) throws IOException {
 		return ResponseEntity.ok(problemService.getProblem(problemId,type));
+	}
+
+	@PostMapping("")
+	public ResponseEntity<?> createProblem(
+		@Parameter(hidden = true) @UserId User user,
+		@RequestBody ProblemRequestDto dto) throws AccessDeniedException {
+		problemService.createProblem(user,dto);
+		return ResponseEntity.ok("문제가 생성되었습니다.");
 	}
 }
