@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
@@ -48,7 +49,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
 				authorizationManagerRequestMatcherRegistry
 					.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-					.requestMatchers(Constants.AUTH_WHITELIST).permitAll()
+					.requestMatchers((RequestMatcher)Constants.AUTH_WHITELIST).permitAll()
 					.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
 					.anyRequest().authenticated())
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -16,6 +16,10 @@ import java.util.concurrent.CompletionException;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
 
+import com.example.SecureAndBox.entity.Problem;
+import com.example.SecureAndBox.entity.User;
+import com.example.SecureAndBox.entity.UserProblemRelation;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,6 +29,8 @@ import lombok.RequiredArgsConstructor;
 public class SecureCodeService {
 	private final ProblemService problemService;
 
+	private final UserProblemService userProblemService;
+
 	@Value("${code.host}")
 	private String PROBLEM_SERVER_URL;
 
@@ -33,9 +39,14 @@ public class SecureCodeService {
 
 	private final HttpClient httpClient = HttpClient.newHttpClient();
 
-	public CompletableFuture<String> verifyAndForwardCode(CodeSubmission submission) {
+	public CompletableFuture<String> verifyAndForwardCode(CodeSubmission submission, User user) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
+
+				Problem problem = problemService.getProblemById(submission.getProblemId());
+				UserProblemRelation up = userProblemService.createUserProblem(user,problem);
+
+
 				// Encode user code to Base64
 			//	String encodedUserCode = Base64.getEncoder()
 				//	.encodeToString(submission.getUserCode().getBytes(StandardCharsets.UTF_8));
@@ -54,7 +65,13 @@ public class SecureCodeService {
 
 				// Send the request asynchronously
 				return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-					.thenApply(response -> handleServerResponse(response.body()))
+					.thenApply(response -> {
+						try {
+							return handleServerResponse(response.body(),up);
+						} catch (JsonProcessingException e) {
+							throw new RuntimeException(e);
+						}
+					})
 					.exceptionally(ex -> {
 						throw new CompletionException("Error during HTTP request", ex);
 					})
@@ -78,15 +95,18 @@ public class SecureCodeService {
 	}
 
 	// Handle server response
-	private String handleServerResponse(String responseBody) {
+	private String handleServerResponse(String responseBody,UserProblemRelation up) throws JsonProcessingException {
+		JsonNode jsonNode = objectMapper.readTree(responseBody);
 		try {
-			if (responseBody.contains("works\nhacked\n")) {
-				return "Success: Code executed without errors.";
-			} else {
-				// Attempt to parse JSON response
-				JsonNode jsonNode = objectMapper.readTree(responseBody);
+			if (jsonNode.has("message") && jsonNode.get("message").asText().contains("hacked")) {
 
-				// Check if the response contains a message of invalid code
+				userProblemService.saveRelation(up);
+				return responseBody;
+			} else if(jsonNode.has("message") && jsonNode.get("message").asText().contains("you protected")) {
+				return responseBody;
+			}
+			else {
+
 				if (jsonNode.has("message") && jsonNode.get("message").asText().contains("Invalid code")) {
 					String output = jsonNode.get("output").asText();
 					return "Error: Invalid code detected. Details: " + output;

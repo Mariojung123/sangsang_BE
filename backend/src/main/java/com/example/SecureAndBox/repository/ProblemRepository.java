@@ -1,6 +1,7 @@
 package com.example.SecureAndBox.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,5 +20,6 @@ public interface ProblemRepository  extends JpaRepository<Problem, Long> {
 	@Query("SELECT p FROM Problem p WHERE p.topic = :topic ORDER BY p.difficulty")
 	List<Problem> findAllByTopic(@Param("topic") String topic);
 
-	Problem findByProblemId(Long problemId);
+	//Problem findByProblemId(Long problemId);
+	Optional<Problem> findByProblemId(Long problemId);
 }

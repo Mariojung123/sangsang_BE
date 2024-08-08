@@ -43,4 +43,28 @@ public class UserProblemService {
 		return dto;
 
 	}
+
+	public void saveRelation(UserProblemRelation up) {
+		if (up == null) {
+			throw new NullPointerException("UserProblemRelation cannot be null");
+
+		}
+		userProblemRepository.save(up);
+	}
+
+	public UserProblemRelation createUserProblem(User user, Problem problem)
+	{
+		if(user==null || problem==null)
+		{
+			throw new NullPointerException("UserProblemRelation cannot be null");
+		}
+
+		UserProblemRelation up = UserProblemRelation.builder()
+			.user(user)
+			.problem(problem)
+			.build();
+		return up;
+
+	}
+
 }

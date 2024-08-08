@@ -3,6 +3,7 @@ package com.example.SecureAndBox.service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -13,6 +14,7 @@ import org.springframework.util.FileCopyUtils;
 import com.example.SecureAndBox.dto.ProblemDetailsDto;
 import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.etc.LanguageType;
+import com.example.SecureAndBox.exception.ProblemNotFoundException;
 import com.example.SecureAndBox.repository.ProblemRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -30,7 +32,7 @@ public class ProblemService {
 
 	public Problem findById(Long id)
 	{
-		return problemRepository.findByProblemId(id);
+		return problemRepository.findByProblemId(id).get();
 	}
 
 
@@ -74,7 +76,7 @@ public class ProblemService {
 	}
 
 	public Object getProblem(Long problemId, LanguageType type) throws IOException {
-		Problem problem = problemRepository.findByProblemId(problemId);
+		Problem problem = getProblemById(problemId);
 		ProblemDetailsDto dto = ProblemDetailsDto.builder()
 			.problemId(problemId)
 			.title(problem.getTitle())
@@ -84,5 +86,10 @@ public class ProblemService {
 		//	.skeletonCode(getSkeletonCode(problem.getTitle(),type))
 			.build();
 		return dto;
+	}
+
+	public Problem getProblemById(Long problemId) {
+		Optional<Problem> optionalProblem = problemRepository.findByProblemId(problemId);
+		return optionalProblem.orElseThrow(() -> new ProblemNotFoundException("Problem not found"));
 	}
 }

@@ -64,7 +64,7 @@ public class KakaoLoginService {
 			if (responseBody != null) {
 				return responseBody;
 			} else {
-				throw new RuntimeException("Failed to get access token from Kakao: " + responseBody);
+				throw new RuntimeException("Failed to get access token from Kakao: ");
 			}
 		} catch (HttpClientErrorException e) {
 			throw new RuntimeException("HTTP error while getting access token from Kakao: " + e.getStatusCode() + " - "
@@ -98,11 +98,10 @@ public class KakaoLoginService {
 			if (responseBody != null) {
 				return responseBody;
 			} else {
-				throw new RuntimeException("Failed to get access token from Kakao: " + responseBody);
+				throw new RuntimeException("Failed to get access token from Kakao: ");
 			}
 		} catch (HttpClientErrorException e) {
-			throw new RuntimeException("HTTP error while getting access token from Kakao: " + e.getStatusCode() + " - "
-				+ e.getResponseBodyAsString(), e);
+			throw new RuntimeException("HTTP error while getting access token from Kakao: " , e);
 		} catch (Exception e) {
 			throw new RuntimeException("Unexpected error while getting access token from Kakao", e);
 		}

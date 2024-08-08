@@ -16,11 +16,14 @@ import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
+import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.etc.LanguageType;
+import com.example.SecureAndBox.login.interceptor.UserId;
 import com.example.SecureAndBox.service.ProblemService;
 import com.example.SecureAndBox.service.SecureCodeService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -41,10 +44,12 @@ public class ProblemController {
 
 	@Async
 	@PostMapping("/submit")
-	public CompletableFuture<ResponseEntity<String>> handleFileUpload(@RequestBody CodeSubmission submission) {
+	public CompletableFuture<ResponseEntity<String>> handleFileUpload(
+		@Parameter(hidden = true) @UserId User user,
+	    @RequestBody CodeSubmission submission) {
 
 
-		return secureCodeService.verifyAndForwardCode(submission)
+		return secureCodeService.verifyAndForwardCode(submission,user)
 			.thenApply(response -> ResponseEntity.ok(response))
 			.exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body("An error occurred: " + ex.getMessage()));
