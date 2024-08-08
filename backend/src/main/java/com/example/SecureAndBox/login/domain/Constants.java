@@ -10,17 +10,5 @@ public class Constants {
 	public static final String BEARER_PREFIX = "Bearer ";
 	public static final String AUTHORIZATION_HEADER = "Authorization";
 	public static final String PROVIDER_TOKEN_HEADER = "X-Provider-Token";
-	public static final List<String> AUTH_WHITELIST = Collections.unmodifiableList(Arrays.asList(
-		"/api/oauth",
-		"/api/oauth/refresh-kakao-token",
-		"/api/oauth/logout",
-		"/api/oauth/callback",
-		"/api/oauth/refresh",
-		"/actuator/health",
-		"/api-docs.html",
-		"/api-docs/**",
-		"/swagger-ui/**",
-		"/swagger-ui.html"
-	));
 
 }

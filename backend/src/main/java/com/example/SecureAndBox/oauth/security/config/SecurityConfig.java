@@ -33,6 +33,16 @@ public class SecurityConfig {
 
 	private static final String[] PERMIT_ALL_PATTERNS = {
 		"/api/**",
+		"/api/oauth",
+		"/api/oauth/refresh-kakao-token",
+		"/api/oauth/logout",
+		"/api/oauth/callback",
+		"/api/oauth/refresh",
+		"/actuator/health",
+		"/api-docs.html",
+		"/api-docs/**",
+		"/swagger-ui/**",
+		"/swagger-ui.html"
 	};
 
 	@Bean
@@ -49,7 +59,6 @@ public class SecurityConfig {
 			.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
 				authorizationManagerRequestMatcherRegistry
 					.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-					.requestMatchers((RequestMatcher)Constants.AUTH_WHITELIST).permitAll()
 					.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
 					.anyRequest().authenticated())
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
