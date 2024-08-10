@@ -57,7 +57,7 @@ public class ProblemController {
 				.body("An error occurred: " + ex.getMessage()));
 	}
 
-
+	@Operation(summary = "문제 제목 가져오기")
 	@GetMapping("")
 	public ResponseEntity<?> getProblemList(
 		@RequestParam(defaultValue = "0") int page,
@@ -94,12 +94,13 @@ public class ProblemController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("File not found or read error");
 		}
 	}
+	@Operation(summary = "문제 디테일 가져오기")
 	@GetMapping("/details")
 	public ResponseEntity<?> getProblemDetails(
 		@RequestParam Long problemId) throws IOException {
 		return ResponseEntity.ok(problemService.getProblem(problemId));
 	}
-
+	@Operation(summary = "문제 생성")
 	@PostMapping("")
 	public ResponseEntity<?> createProblem(
 		@Parameter(hidden = true) @UserId User user,
