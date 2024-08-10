@@ -11,4 +11,6 @@ import com.example.SecureAndBox.entity.UserProblemRelation;
 @Repository
 public interface UserProblemRepository extends JpaRepository<UserProblemRelation ,Long> {
 	List<UserProblemRelation> findAllByUser(User user);
+
+
 }

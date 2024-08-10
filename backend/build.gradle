@@ -47,6 +47,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+
+	implementation 'org.springframework.security:spring-security-crypto:5.7.1'
+
 }
 
 

@@ -11,6 +11,7 @@ import lombok.Getter;
 @Builder
 @Getter
 public class ProblemResponseDto {
+
 	@JsonProperty("pid")
 	private Long problemId;
 	private String image;
@@ -30,6 +31,13 @@ public class ProblemResponseDto {
 		return tags != null ? new ArrayList<>(tags) : Collections.emptyList();
 	}
 
+	public static class ProblemResponseDtoBuilder {
+		private List<Tag> tags;
 
-
+		public ProblemResponseDtoBuilder tags(List<Tag> tags) {
+			this.tags = tags != null ? new ArrayList<>(tags) : null;  // Defensive copy
+			return this;
+		}
+	}
 }
+
