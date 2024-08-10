@@ -97,8 +97,8 @@ public class ProblemController {
 	@Operation(summary = "문제 디테일 가져오기")
 	@GetMapping("/details")
 	public ResponseEntity<?> getProblemDetails(
-		@RequestParam Long problemId) throws IOException {
-		return ResponseEntity.ok(problemService.getProblem(problemId));
+		@RequestParam Long pid) throws IOException {
+		return ResponseEntity.ok(problemService.getProblem(pid));
 	}
 	@Operation(summary = "문제 생성")
 	@PostMapping("")
