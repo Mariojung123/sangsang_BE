@@ -48,7 +48,7 @@ public class AuthController {
 	private String redirectUri;// Replace with your actual redirect URI
 
 	@GetMapping("")
-	public void redirectToKakaoLogin(HttpServletResponse response) throws IOException {
+	public ResponseEntity<?> redirectToKakaoLogin(HttpServletResponse response) throws IOException {
 		String clientId = apiKey;  // Replace with your Kakao REST API Key
 
 		String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
@@ -62,7 +62,8 @@ public class AuthController {
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 
 		// Perform the redirect
-		response.sendRedirect(kakaoAuthUrl);
+	//	return response.sendRedirect(kakaoAuthUrl);
+		return ResponseEntity.ok(kakaoAuthUrl);
 	}
 
 	@GetMapping("/callback")
