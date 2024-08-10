@@ -33,6 +33,10 @@ public class User {
     @Column(nullable = true)
     private String refreshToken;
 
+    private String username;
+    private String pw;
+    private String email;
+
 
 
     public void updateRefreshToken(String refreshToken) {

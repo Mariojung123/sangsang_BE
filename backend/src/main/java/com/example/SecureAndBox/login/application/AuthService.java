@@ -2,15 +2,18 @@ package com.example.SecureAndBox.login.application;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
+import org.webjars.NotFoundException;
 
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.login.domain.Constants;
@@ -18,6 +21,7 @@ import com.example.SecureAndBox.login.domain.enums.Provider;
 import com.example.SecureAndBox.login.dto.SocialInfoDto;
 
 import com.example.SecureAndBox.login.dto.request.LoginRequestDto;
+import com.example.SecureAndBox.login.dto.request.SignUpDto;
 import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
 import com.example.SecureAndBox.login.exception.NotFoundUserInfoException;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
@@ -25,6 +29,7 @@ import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
 import com.example.SecureAndBox.oauth.utils.JwtUtil;
 import com.example.SecureAndBox.repository.UserRepository;
 
+import io.jsonwebtoken.security.InvalidKeyException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -36,7 +41,8 @@ public class AuthService {
 	private final UserRepository userRepository;
 	private final JwtUtil jwtUtil;
 	private final RestTemplate restTemplate;
-
+	@Autowired
+	private  PasswordEncoder passwordEncoder;
 	@Transactional
 	public JwtTokenResponse login(KakaoTokenResponse providerToken, LoginRequestDto request) throws IOException {
 		SocialInfoDto socialInfo = getSocialInfo(request, providerToken.getAccess_token());
@@ -70,6 +76,47 @@ public class AuthService {
 				return newUser;
 			});
 	}
+
+	public JwtTokenResponse notSocialLogin(String username, String rawPassword) {
+		User user = userRepository.findByUsername(username)
+			.orElseThrow(() -> new NotFoundException("존재하지 않는 아이디 입니다."));
+
+		// 비밀번호 비교
+		if (!passwordEncoder.matches(rawPassword, user.getPw())) {
+			throw new InvalidKeyException("올바르지 않은 비밀번호입니다.");
+		}
+
+		JwtTokenResponse jwtTokenResponse = jwtUtil.generateTokensBypw(
+			user.getUserId(),
+			user.getRole(),
+			user.getPw(),
+			rawPassword
+		);
+		return jwtTokenResponse;
+	}
+
+
+
+	public void createUser(SignUpDto dto)
+	{   String encodepw=passwordEncoder.encode(dto.getPw());
+		User user = User.builder()
+			.username(dto.getUsername())
+			.pw(encodepw)
+			.name(dto.getUsername())
+			.email(dto.getEmail())
+			.serialId("NONE")
+			.refreshToken("")
+			.role(User.Role.USER)
+			.build();
+		userRepository.save(user);
+	}
+
+
+
+
+
+
+
 
 	private JwtTokenResponse generateTokensWithUpdateRefreshToken(User user, String accessToken, String refreshToken) {
 		JwtTokenResponse jwtTokenResponse = jwtUtil.generateTokens(user.getUserId(), user.getRole(), accessToken,

@@ -50,6 +50,13 @@ public class JwtUtil implements InitializingBean {
 		//generateToken(id, null, refreshTokenExpirePeriod));
 	}
 
+	public JwtTokenResponse generateTokensBypw(Long id, User.Role role, String pwd, String refresh) {
+		return JwtTokenResponse.of(
+			generateToken(id, role, accessTokenExpirePeriod, pwd),
+			refresh);
+		//generateToken(id, null, refreshTokenExpirePeriod));
+	}
+
 	public Claims getTokenBody(String token) {
 		try {
 			return Jwts.parserBuilder()
