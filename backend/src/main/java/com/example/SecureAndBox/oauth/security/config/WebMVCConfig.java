@@ -27,20 +27,4 @@ public class WebMVCConfig implements WebMvcConfigurer {
 		resolvers.add(this.userIdArgumentResolver);
 	}
 
-	@Bean
-	public CorsFilter corsFilter() {
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowCredentials(true);
-		config.addAllowedOriginPattern("http://localhost:63342");
-		config.addAllowedOriginPattern("http://localhost:8000");
-		config.addAllowedOriginPattern("http://localhost:4200");
-		config.addAllowedOriginPattern(
-			"https://kauth.kakao.com");// You can specify allowed origins here
-		config.addAllowedHeader("*");
-		config.addAllowedMethod("*");
-		source.registerCorsConfiguration("/**", config);
-		return new CorsFilter(source);
-	}
-
 }

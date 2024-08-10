@@ -69,10 +69,13 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:63342"));
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-		configuration.setAllowedOrigins(Arrays.asList("http://20.39.188.226:8080"));
+		configuration.setAllowedOriginPatterns(Arrays.asList(
+			"http://localhost:8080",
+			"http://localhost:63342",
+			"http://localhost:4200",
+			"http://20.39.188.226:8080",
+			"https://kauth.kakao.com"
+		));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setAllowCredentials(true);
@@ -80,4 +83,5 @@ public class SecurityConfig {
 		source.registerCorsConfiguration("/**", configuration);
 		return source;
 	}
+
 }
