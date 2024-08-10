@@ -58,7 +58,7 @@ public class AuthController {
 			+ "&scope=profile_nickname";
 
 		// Set CORS headers
-		response.setHeader("Access-Control-Allow-Origin", "http://localhost:8282");
+		response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 
 		// Perform the redirect
