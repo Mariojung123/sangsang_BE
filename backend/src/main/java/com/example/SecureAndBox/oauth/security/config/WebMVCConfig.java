@@ -34,6 +34,7 @@ public class WebMVCConfig implements WebMvcConfigurer {
 		config.setAllowCredentials(true);
 		config.addAllowedOriginPattern("http://localhost:63342");
 		config.addAllowedOriginPattern("http://localhost:8000");
+		config.addAllowedOriginPattern("http://localhost:4200");
 		config.addAllowedOriginPattern(
 			"https://kauth.kakao.com");// You can specify allowed origins here
 		config.addAllowedHeader("*");
