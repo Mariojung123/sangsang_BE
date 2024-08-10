@@ -11,12 +11,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
 import com.example.SecureAndBox.dto.ProblemDetailsDto;
 import com.example.SecureAndBox.dto.ProblemRequestDto;
+import com.example.SecureAndBox.dto.ProblemResponseDto;
 import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.etc.LanguageType;
@@ -45,12 +47,34 @@ public class ProblemService {
 
 
 	public Object getProblemList(Pageable pageable) {
-  		List<Problem> problems = problemRepository.findAll(pageable).getContent();
-		return problems;
+		Page<Problem> problemPage = problemRepository.findAll(pageable);
+		List<Problem> problems = problemPage.getContent();
 
+		// Map each Problem to a ProblemResponseDto
+		List<ProblemResponseDto> problemResponseList = problems.stream()
+			.map(problem -> {
+				List<ProblemResponseDto.Tag> tags = problem.getTags().stream()
+					.map(tagMap -> ProblemResponseDto.Tag.builder()
+						.variant(tagMap.get("variant"))
+						.value(tagMap.get("value"))
+						.build())
+					.collect(Collectors.toList());
+
+				return ProblemResponseDto.builder()
+					.problemId(problem.getProblemId())
+					.title(problem.getTitle())
+					.topic(problem.getTopic())
+					.description(problem.getDescription())
+					.image(problem.getImage())
+					.tags(tags)
+					.build();
+			})
+			.collect(Collectors.toList());
+
+		return problemResponseList;
 	}
 
-	public Object getProblemListByDifficulty(String difficulty) {
+	/*public Object getProblemListByDifficulty(String difficulty) {
 		List<Problem> problems = problemRepository.findAllByDifficulty(difficulty);
 		return problems;
 
@@ -59,17 +83,24 @@ public class ProblemService {
 	public Object getProblemListByTopic(String topic) {
 		List<Problem> problems = problemRepository.findAllByTopic(topic);
 		return problems;
-	}
+	}*/
 
-	public String getSkeletonCode(String filename, LanguageType type) throws IOException {
-		Resource resource = new ClassPathResource("static/" + filename+"/"+ type.getKey()+"/"+filename+"."+type.getKey());
+	public String getSkeletonCode(String topic, String title, LanguageType type) throws IOException {
+		// 리소스 경로를 String.format으로 좀 더 읽기 쉽게 구성
+		String resourcePath = String.format("static/problem/%s/%s/%s.%s",
+			topic, type.getKey(), title, type.getKey());
+		Resource resource = new ClassPathResource(resourcePath);
+
+		// 파일 데이터를 읽고 String으로 변환
 		byte[] bdata = FileCopyUtils.copyToByteArray(resource.getInputStream());
 		return new String(bdata, StandardCharsets.UTF_8);
 	}
 
-	public Object getProblem(Long problemId, LanguageType languageType) throws IOException {
+	public Object getProblem(Long problemId) throws IOException {
+		// 문제를 ID로 조회
 		Problem problem = getProblemById(problemId);
 
+		// 태그 리스트를 DTO로 변환
 		List<ProblemDetailsDto.Tag> tags = problem.getTags().stream()
 			.map(tagMap -> ProblemDetailsDto.Tag.builder()
 				.variant(tagMap.get("variant"))
@@ -77,11 +108,17 @@ public class ProblemService {
 				.build())
 			.collect(Collectors.toList());
 
+		// 스켈레톤 코드 가져오기
+		String phpCode = getSkeletonCode(problem.getTopic(), problem.getTitle(), LanguageType.PHP);
+		String pythonCode = getSkeletonCode(problem.getTopic(), problem.getTitle(), LanguageType.PYTHON);
+
+		// 타입 정보 생성
 		ProblemDetailsDto.Type type = ProblemDetailsDto.Type.builder()
-			.php(problem.getType().get("php"))
-			.python(problem.getType().get("python"))
+			.php(phpCode)
+			.python(pythonCode)
 			.build();
 
+		// 문제 DTO 생성 및 반환
 		ProblemDetailsDto dto = ProblemDetailsDto.builder()
 			.problemId(problemId)
 			.title(problem.getTitle())
@@ -114,7 +151,6 @@ public class ProblemService {
 		Problem problem = Problem.builder()
 			.topic(problemRequestDto.getTopic())
 			.title(problemRequestDto.getTitle())
-			.difficulty(problemRequestDto.getDifficulty())  // default value
 			.description(problemRequestDto.getDescription())
 			.image(problemRequestDto.getImage())
 			.tags(tags)

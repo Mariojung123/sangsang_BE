@@ -68,7 +68,7 @@ public class ProblemController {
 		return ResponseEntity.ok(problemService.getProblemList(pageable));
 	}
 
-	@GetMapping("/topic")
+	/*@GetMapping("/topic")
 	public ResponseEntity<?> getProblemListByTopic(@RequestParam(defaultValue="login") String topic)
 	 {
 		return ResponseEntity.ok(problemService.getProblemListByTopic(topic));
@@ -78,12 +78,15 @@ public class ProblemController {
 	public ResponseEntity<?> getProblemListByDfficulty(@RequestParam(defaultValue="EASY") String difficulty)
 	{
 		return ResponseEntity.ok(problemService.getProblemListByDifficulty(difficulty));
-	}
+	}*/
 	@Operation(summary="스켈레톤 코드 가져오기")
 	@GetMapping("/skeleton-code")
-	public ResponseEntity<String> getSkeletonCode(@RequestParam("filename") String filename,@RequestParam LanguageType type) {
+	public ResponseEntity<String> getSkeletonCode(
+		@RequestParam("topic") String topic,
+		@RequestParam("title") String title,
+		@RequestParam LanguageType type) {
 		try {
-			String content = problemService.getSkeletonCode(filename,type);
+			String content = problemService.getSkeletonCode(topic,title,type);
 			return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8")
 				.body(content);
@@ -93,9 +96,8 @@ public class ProblemController {
 	}
 	@GetMapping("/details")
 	public ResponseEntity<?> getProblemDetails(
-		@RequestParam Long problemId,
-		@RequestParam(defaultValue = "JAVA") LanguageType type) throws IOException {
-		return ResponseEntity.ok(problemService.getProblem(problemId,type));
+		@RequestParam Long problemId) throws IOException {
+		return ResponseEntity.ok(problemService.getProblem(problemId));
 	}
 
 	@PostMapping("")

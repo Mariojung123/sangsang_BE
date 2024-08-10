@@ -44,6 +44,7 @@ public class ProblemDetailsDto {
 	public static class Type {
 		private String php;
 		private String python;
+
 	}
 
 	public List<Tag> getTags() {

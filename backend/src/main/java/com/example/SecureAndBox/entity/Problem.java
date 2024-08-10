@@ -36,8 +36,6 @@ public class Problem {
 
 	private String title;
 
-	private String difficulty;
-
 	private String description;
 
 	private String image;
@@ -62,12 +60,11 @@ public class Problem {
 
 
 	@Builder
-	public Problem(Long problemId, String topic, String title, String difficulty, String description,
+	public Problem(Long problemId, String topic, String title,String description,
 		String image, List<Map<String, String>> tags, Map<String, String> type) {
 		this.problemId = problemId;
 		this.topic = topic;
 		this.title = title;
-		this.difficulty = difficulty;
 		this.description = description;
 		this.image = image;
 		this.tags = tags != null ? Collections.unmodifiableList(new ArrayList<>(tags)) : null;

@@ -12,13 +12,13 @@ import org.springframework.data.repository.query.Param;
 import com.example.SecureAndBox.entity.Problem;
 
 public interface ProblemRepository  extends JpaRepository<Problem, Long> {
-	@Query("SELECT p FROM Problem p WHERE p.difficulty = :difficulty")
+/*	@Query("SELECT p FROM Problem p WHERE p.difficulty = :difficulty")
 	List<Problem> findAllByDifficulty(@Param("difficulty") String difficulty);
 
+*/
 
-
-	@Query("SELECT p FROM Problem p WHERE p.topic = :topic ORDER BY p.difficulty")
-	List<Problem> findAllByTopic(@Param("topic") String topic);
+/*	@Query("SELECT p FROM Problem p WHERE p.topic = :topic ORDER BY p.difficulty")
+	List<Problem> findAllByTopic(@Param("topic") String topic);*/
 
 	//Problem findByProblemId(Long problemId);
 	Optional<Problem> findByProblemId(Long problemId);
