@@ -65,6 +65,7 @@ public class AuthController {
 	@Operation(summary = "카카오 로그인 code 가져오기")
 	@GetMapping("")
 	public ResponseEntity<?> redirectToKakaoLogin(HttpServletResponse response) throws IOException {
+		System.out.println("로그인 시도\n\n\n");
 		String clientId = apiKey;  // Replace with your Kakao REST API Key
 
 		String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
@@ -130,6 +131,7 @@ public class AuthController {
 	@GetMapping("/callback")
 	public ResponseEntity<?> kakaoCallback(@RequestParam String code) throws IOException {
 		try {
+			System.out.println("callback\n\n\n");
 			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
 			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name can be null here
 			JwtTokenResponseDto tokens = authService.login(accessToken, request);
