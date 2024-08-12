@@ -22,8 +22,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
-	//swagger사용을 위한 의존성
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+	//swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'
 
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	compileOnly 'org.projectlombok:lombok'
@@ -32,6 +32,24 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	//oauth
+	implementation 'org.springframework.cloud:spring-cloud-starter-config:4.1.3'
+	// implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.3'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3'
+
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	// Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+
+	implementation 'org.springframework.security:spring-security-crypto:5.7.1'
+
 }
 
 

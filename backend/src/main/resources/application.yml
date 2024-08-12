@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: KEBProject
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+  cloud:
+    config:
+      enabled: false
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-token-expire-period: 1296000
+  refresh-token-expire-period: 1296000
+
+kakao:
+  api:
+    key: ${KAKAO.API.KEY}
+  redirect:
+    url: ${KAKAO.REDIRECT.URL}
+
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  swagger-ui:
+    operations-sorter: alpha
+    tags-sorter: alpha
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    display-query-params-without-oauth2: true
+    doc-expansion: none
+  paths-to-match:
+    - /api/**
+code:
+  host: ${CODE.HOST}

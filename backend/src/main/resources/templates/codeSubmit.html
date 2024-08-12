@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Submission</title>
+</head>
+<body>
+<h2>Python Code Submission</h2>
+<form id="codeSubmissionForm">
+    <label for="problemId">Problem ID:</label>
+    <input type="number" id="problemId" required><br><br>
+
+    <label for="languageType">Language Type:</label>
+    <input type="text" id="languageType" value="python" readonly><br><br>
+
+    <label for="userCode">Your Python Code:</label><br>
+    <textarea id="userCode" rows="10" cols="50" required></textarea><br><br>
+
+    <button type="submit">Submit Code</button>
+</form>
+
+<div id="response"></div>
+
+<script>
+    document.getElementById('codeSubmissionForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const problemId = document.getElementById('problemId').value;
+        const languageType = document.getElementById('languageType').value;
+        const userCode = document.getElementById('userCode').value;
+
+        // Use native JavaScript Base64 encoding
+        const encodedCode = btoa(userCode);
+
+        const data = {
+            problem_id: parseInt(problemId),
+            language_type: languageType,
+            user_code: encodedCode
+        };
+
+        fetch('http://localhost:8080/api/problem/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.text())
+            .then(result => {
+                document.getElementById('response').textContent = 'Server response: ' + result;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('response').textContent = 'Error: ' + error.message;
+            });
+    });
+</script>
+</body>
+</html>
