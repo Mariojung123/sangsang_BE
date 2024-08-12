@@ -49,7 +49,7 @@ public class AuthService {
 		User user = loadOrCreateUser(request.provider(), socialInfo);
 		String refreshToken = providerToken.getRefresh_token();
 		if (refreshToken == null) {
-			//refreshToken = user.getRefreshToken();
+			refreshToken = user.getRefreshToken();
 		}
 		return generateTokensWithUpdateRefreshToken(user, providerToken.getAccess_token(), refreshToken);
 	}
@@ -90,7 +90,7 @@ public class AuthService {
 			user.getUserId(),
 			user.getRole(),
 			user.getPw(),
-			rawPassword
+			""
 		);
 		return jwtTokenResponse;
 	}

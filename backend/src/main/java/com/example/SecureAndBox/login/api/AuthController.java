@@ -33,6 +33,7 @@ import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
 import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -58,7 +59,7 @@ public class AuthController {
 	private String apiKey;
 	@Value("${kakao.redirect.url}")
 	private String redirectUri;// Replace with your actual redirect URI
-
+	@Operation(summary = "카카오 로그인 code 가져오기")
 	@GetMapping("")
 	public ResponseEntity<?> redirectToKakaoLogin(HttpServletResponse response) throws IOException {
 		String clientId = apiKey;  // Replace with your Kakao REST API Key
@@ -77,6 +78,7 @@ public class AuthController {
 	//	return response.sendRedirect(kakaoAuthUrl);
 		return ResponseEntity.ok(kakaoAuthUrl);
 	}
+	@Operation(summary = "로그인 -> 아이디 로그인")
 	@PostMapping("/login")
 	public ResponseEntity<?> login(
 		@Valid @RequestBody LoginDto dto
@@ -92,8 +94,8 @@ public class AuthController {
 		// 로그인 처리
 		return ResponseEntity.ok(authService.notSocialLogin(id, pw));
 	}
-
-	@PostMapping("signUp")
+	@Operation(summary = "회원가입")
+	@PostMapping("/signUp")
 	public ResponseEntity<?> signUp(
 		@Valid @RequestBody SignUpDto dto
 	){
@@ -120,7 +122,7 @@ public class AuthController {
 	}
 
 
-
+	@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
 	@GetMapping("/callback")
 	public ResponseEntity<?> kakaoCallback(@RequestParam String code) throws IOException {
 		try {
@@ -142,13 +144,14 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
 		}
 	}
+	@Operation(summary = "카카오 로그아웃 하기")
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout() {
 		UserAuthentication authentication = (UserAuthentication)SecurityContextHolder.getContext().getAuthentication();
 		authService.logout(authentication);
 		return ResponseEntity.ok("로그아웃에 성공하였습니다.");
 	}
-
+	@Operation(summary = "카카오 로그인 리프레시 토큰 받기")
 	@PostMapping("/refresh-kakao-token")
 	public ResponseEntity<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
 		KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
