@@ -97,14 +97,17 @@ public class SecureCodeService {
 	// Handle server response
 	private String handleServerResponse(String responseBody, UserProblemRelation up) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
+		System.out.println(responseBody);
 		try {
 			if (jsonNode.has("message")) {
 				String message = jsonNode.get("message").asText();
 
 				if (message.contains("hacked")) {
-					userProblemService.saveRelation(up);
+					System.out.println("hacked");
 					return responseBody;
 				} else if (message.contains("you protected")) {
+					userProblemService.saveRelation(up);
+					System.out.println("you protected");
 					return responseBody;
 				} else if (message.contains("Invalid code") && jsonNode.has("output")) {
 					String output = jsonNode.get("output").asText();
