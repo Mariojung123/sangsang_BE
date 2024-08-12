@@ -3,10 +3,8 @@ package com.example.SecureAndBox.dto;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 
 
