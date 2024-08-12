@@ -3,6 +3,7 @@ package com.example.SecureAndBox.oauth.utils;
 import java.security.Key;
 import java.util.Date;
 
+import com.example.SecureAndBox.login.dto.response.JwtTokenResponseDto;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -43,17 +44,20 @@ public class JwtUtil implements InitializingBean {
 		this.key = Keys.hmacShaKeyFor(keyBytes); // HS512용 보안 키 생성
 	}
 
-	public JwtTokenResponse generateTokens(Long id, User.Role role, String access, String refresh) {
-		return JwtTokenResponse.of(
-			generateToken(id, role, accessTokenExpirePeriod, access),
-			refresh);
+	public JwtTokenResponseDto generateTokens(Long id, User.Role role, String access, String refresh) {
+		return JwtTokenResponseDto.builder()
+				.accessToken(generateToken(id, role, accessTokenExpirePeriod, access))
+				.refreshToken(refresh)
+				.build();
+
 		//generateToken(id, null, refreshTokenExpirePeriod));
 	}
 
-	public JwtTokenResponse generateTokensBypw(Long id, User.Role role, String pwd, String refresh) {
-		return JwtTokenResponse.of(
-			generateToken(id, role, accessTokenExpirePeriod, pwd),
-			refresh);
+	public JwtTokenResponseDto generateTokensBypw(Long id, User.Role role, String pwd, String refresh) {
+		return JwtTokenResponseDto.builder()
+				.accessToken(generateToken(id, role, accessTokenExpirePeriod, pwd))
+				.accessToken(refresh)
+				.build();
 		//generateToken(id, null, refreshTokenExpirePeriod));
 	}
 

@@ -2,6 +2,7 @@ package com.example.SecureAndBox.login.application;
 
 import java.io.IOException;
 
+import com.example.SecureAndBox.login.dto.response.JwtTokenResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -44,7 +45,7 @@ public class AuthService {
 	@Autowired
 	private  PasswordEncoder passwordEncoder;
 	@Transactional
-	public JwtTokenResponse login(KakaoTokenResponse providerToken, LoginRequestDto request) throws IOException {
+	public JwtTokenResponseDto login(KakaoTokenResponse providerToken, LoginRequestDto request) throws IOException {
 		SocialInfoDto socialInfo = getSocialInfo(request, providerToken.getAccess_token());
 		User user = loadOrCreateUser(request.provider(), socialInfo);
 		String refreshToken = providerToken.getRefresh_token();
@@ -77,7 +78,7 @@ public class AuthService {
 			});
 	}
 
-	public JwtTokenResponse notSocialLogin(String username, String rawPassword) {
+	public JwtTokenResponseDto notSocialLogin(String username, String rawPassword) {
 		User user = userRepository.findByUsername(username)
 			.orElseThrow(() -> new NotFoundException("존재하지 않는 아이디 입니다."));
 
@@ -86,7 +87,7 @@ public class AuthService {
 			throw new InvalidKeyException("올바르지 않은 비밀번호입니다.");
 		}
 
-		JwtTokenResponse jwtTokenResponse = jwtUtil.generateTokensBypw(
+		JwtTokenResponseDto jwtTokenResponse = jwtUtil.generateTokensBypw(
 			user.getUserId(),
 			user.getRole(),
 			user.getPw(),
@@ -118,8 +119,8 @@ public class AuthService {
 
 
 
-	private JwtTokenResponse generateTokensWithUpdateRefreshToken(User user, String accessToken, String refreshToken) {
-		JwtTokenResponse jwtTokenResponse = jwtUtil.generateTokens(user.getUserId(), user.getRole(), accessToken,
+	private JwtTokenResponseDto generateTokensWithUpdateRefreshToken(User user, String accessToken, String refreshToken) {
+		JwtTokenResponseDto jwtTokenResponse = jwtUtil.generateTokens(user.getUserId(), user.getRole(), accessToken,
 			refreshToken);
 		user.updateRefreshToken(refreshToken);
 		return jwtTokenResponse;

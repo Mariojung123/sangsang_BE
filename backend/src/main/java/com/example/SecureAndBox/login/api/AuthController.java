@@ -3,10 +3,13 @@ package com.example.SecureAndBox.login.api;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import com.example.SecureAndBox.login.dto.response.JwtTokenResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.http.HttpStatus;
@@ -75,8 +78,9 @@ public class AuthController {
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 
 		// Perform the redirect
-	//	return response.sendRedirect(kakaoAuthUrl);
-		return ResponseEntity.ok(kakaoAuthUrl);
+		Map<String, String> responseBody = new HashMap<>();
+		responseBody.put("redirectUrl", kakaoAuthUrl);
+		return ResponseEntity.ok(responseBody);
 	}
 	@Operation(summary = "로그인 -> 아이디 로그인")
 	@PostMapping("/login")
@@ -128,7 +132,7 @@ public class AuthController {
 		try {
 			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
 			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name can be null here
-			JwtTokenResponse tokens = authService.login(accessToken, request);
+			JwtTokenResponseDto tokens = authService.login(accessToken, request);
 			return ResponseEntity.ok(tokens);
 		} catch (AuthenticationException e) {
 			// Handle general authentication errors
@@ -156,7 +160,7 @@ public class AuthController {
 	public ResponseEntity<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
 		KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
 		LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null);
-		JwtTokenResponse tokens = authService.login(response, request);
+		JwtTokenResponseDto tokens = authService.login(response, request);
 		return ResponseEntity.ok((tokens));
 	}
 
