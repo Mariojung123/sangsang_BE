@@ -91,7 +91,7 @@ public class AuthService {
 			user.getUserId(),
 			user.getRole(),
 			user.getPw(),
-			""
+			user.getRefreshToken()
 		);
 		return jwtTokenResponse;
 	}
@@ -106,7 +106,7 @@ public class AuthService {
 			.name(dto.getUsername())
 			.email(dto.getEmail())
 			.serialId("NONE")
-			.refreshToken("")
+			.refreshToken("NONE")
 			.role(User.Role.USER)
 			.build();
 		userRepository.save(user);
