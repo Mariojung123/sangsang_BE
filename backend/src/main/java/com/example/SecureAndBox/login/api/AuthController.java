@@ -13,6 +13,7 @@ import com.example.SecureAndBox.login.dto.response.JwtTokenResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -127,7 +128,7 @@ public class AuthController {
 	}
 
 
-	@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
+	/*@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
 	@GetMapping("/callback")
 	public ResponseEntity<?> kakaoCallback(@RequestParam String code) throws IOException {
 		try {
@@ -149,7 +150,49 @@ public class AuthController {
 			logger.log(Level.SEVERE, "Unexpected error during Kakao callback processing: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
 		}
+	}*/
+	@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
+	@GetMapping("/callback")
+	public ResponseEntity<String> kakaoCallback(@RequestParam String code) {
+		try {
+			// 카카오 API를 사용하여 액세스 토큰 및 리프레시 토큰 가져오기
+			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
+			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name은 여기서 null로 설정
+
+			// JWT 토큰 생성
+			JwtTokenResponseDto tokens = authService.login(accessToken, request);
+
+			// 토큰 정보를 JavaScript에 주입하여 HTML 반환
+			String htmlContent = String.format("""
+            <script>
+                const userInfo = {
+                    method: 'kakao',
+                    accessToken: '%s',
+                    refreshToken: '%s',
+                };
+                window.opener.postMessage(userInfo, "*");
+               
+            </script>
+            """, tokens.getAccessToken(), tokens.getRefreshToken());
+
+			return ResponseEntity.ok()
+					.contentType(MediaType.TEXT_HTML)
+					.body(htmlContent);
+
+		} catch (AuthenticationException e) {
+			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("<script>alert('Authentication failed.'); window.close();</script>");
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "IO error during Kakao callback processing: " + e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('Internal server error.'); window.close();</script>");
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Unexpected error during Kakao callback processing: " + e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('An unexpected error occurred.'); window.close();</script>");
+		}
 	}
+
+
+
 	@Operation(summary = "카카오 로그아웃 하기")
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout() {
