@@ -51,6 +51,7 @@ public class ProblemController {
 	    @RequestBody CodeSubmission submission) {
 
 
+		System.out.println(submission.getUserCode()+"\n\n");
 		return secureCodeService.verifyAndForwardCode(submission,user)
 			.thenApply(response -> ResponseEntity.ok(response))
 			.exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

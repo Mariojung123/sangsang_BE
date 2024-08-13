@@ -95,31 +95,37 @@ public class SecureCodeService {
 	}
 
 	// Handle server response
-	private String handleServerResponse(String responseBody,UserProblemRelation up) throws JsonProcessingException {
+	private String handleServerResponse(String responseBody, UserProblemRelation up) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
+		System.out.println(responseBody);
 		try {
-			if (jsonNode.has("message") && jsonNode.get("message").asText().contains("hacked")) {
+			if (jsonNode.has("message")) {
+				String message = jsonNode.get("message").asText();
 
-				userProblemService.saveRelation(up);
-				return responseBody;
-			} else if(jsonNode.has("message") && jsonNode.get("message").asText().contains("you protected")) {
-				return responseBody;
-			}
-			else {
-
-				if (jsonNode.has("message") && jsonNode.get("message").asText().contains("Invalid code")) {
+				if (message.contains("hacked")) {
+					System.out.println("hacked");
+					return responseBody;
+				} else if (message.contains("you protected")) {
+					userProblemService.saveRelation(up);
+					System.out.println("you protected");
+					return responseBody;
+				} else if (message.contains("Invalid code") && jsonNode.has("output")) {
 					String output = jsonNode.get("output").asText();
 					return "Error: Invalid code detected. Details: " + output;
-				} else if (jsonNode.has("error")) {
-					String errorDetails = jsonNode.get("error").asText();
-					return "Error: " + errorDetails;
 				}
 			}
+
+			if (jsonNode.has("error")) {
+				String errorDetails = jsonNode.get("error").asText();
+				return "Error: " + errorDetails;
+			}
+
 			return "Unexpected response format.";
 		} catch (Exception e) {
 			return "Error processing server response: " + e.getMessage();
 		}
 	}
+
 }
 
 

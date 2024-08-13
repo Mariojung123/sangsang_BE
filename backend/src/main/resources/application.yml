@@ -29,9 +29,9 @@ jwt:
 
 kakao:
   api:
-    key: ${KAKAO.API.KEY}
+    key: ${KAKAO_API_KEY}
   redirect:
-    url: ${KAKAO.REDIRECT.URL}
+    url: ${KAKAO_REDIRECT_URL}
 
 
 springdoc:
@@ -49,4 +49,4 @@ springdoc:
   paths-to-match:
     - /api/**
 code:
-  host: ${CODE.HOST}
+  host: ${CODE_HOST}
