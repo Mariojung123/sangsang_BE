@@ -40,7 +40,7 @@ public class VideoController {
 		try {
 			Video video = videoService.createVideo(request);
 			return ResponseEntity.ok("영상이 성공적으로 추가되었습니다.");
-		} catch (Exception e) {
+		} catch (Exception e) {//sparrow - return 문이 catch 문 내에서 사용됩니다.  , 부적절한 예외처리
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");
 		}
 	}
@@ -51,7 +51,7 @@ public class VideoController {
 		try {
 			videoService.deleteVideo(videoId);
 			return ResponseEntity.ok("동영상이 삭제되었습니다.");
-		} catch (Exception e) {
+		} catch (Exception e) { //sparrow - return 문이 catch 문 내에서 사용됩니다.  , 부적절한 예외처리
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");
 		}
 	}

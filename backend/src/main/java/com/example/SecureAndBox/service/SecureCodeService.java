@@ -76,7 +76,7 @@ public class SecureCodeService {
 						throw new CompletionException("Error during HTTP request", ex);
 					})
 					.join();
-			} catch (Exception e) {
+			} catch (Exception e) {  //sparrow - 부적절한 예외처리
 				throw new CompletionException("Error processing code submission", e);
 			}
 		});
@@ -97,7 +97,6 @@ public class SecureCodeService {
 	// Handle server response
 	private String handleServerResponse(String responseBody, UserProblemRelation up) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
-		System.out.println(responseBody);
 		try {
 			if (jsonNode.has("message")) {
 				String message = jsonNode.get("message").asText();
@@ -112,6 +111,9 @@ public class SecureCodeService {
 				} else if (message.contains("Invalid code") && jsonNode.has("output")) {
 					String output = jsonNode.get("output").asText();
 					return "Error: Invalid code detected. Details: " + output;
+				}else if(message.contains("Exploit execution failed"))
+				{	System.out.println("공격 수행 문제");
+					return responseBody;
 				}
 			}
 
@@ -121,7 +123,7 @@ public class SecureCodeService {
 			}
 
 			return "Unexpected response format.";
-		} catch (Exception e) {
+		} catch (Exception e) { //sparrow - return문이 catch 문 내에서 사용 , 부적절한 예외처리
 			return "Error processing server response: " + e.getMessage();
 		}
 	}

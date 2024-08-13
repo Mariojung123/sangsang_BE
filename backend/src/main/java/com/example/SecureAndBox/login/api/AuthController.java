@@ -96,7 +96,7 @@ public class AuthController {
 		if (!isValidId(id) || !isValidPassword(pw)) {
 			return ResponseEntity.badRequest().body("Invalid ID or Password format");
 		}
-
+		//sparrow - 로그인 루틴은 반복 구문을 통해 수행 횟수가 제어되어야 한다.
 		// 로그인 처리
 		return ResponseEntity.ok(authService.notSocialLogin(id, pw));
 	}
@@ -158,7 +158,7 @@ public class AuthController {
 			// 카카오 API를 사용하여 액세스 토큰 및 리프레시 토큰 가져오기
 			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
 			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name은 여기서 null로 설정
-
+			//sparrow - 로그인 루틴은 반복 구문을 통해 수행 횟수가 제어되어야 한다.
 			// JWT 토큰 생성
 			JwtTokenResponseDto tokens = authService.login(accessToken, request);
 
@@ -179,7 +179,7 @@ public class AuthController {
 					.contentType(MediaType.TEXT_HTML)
 					.body(htmlContent);
 
-		} catch (AuthenticationException e) {
+		} catch (AuthenticationException e) { //sparrow - return문이 catch 문 내에서 사용
 			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("<script>alert('Authentication failed.'); window.close();</script>");
 		} catch (IOException e) {
@@ -205,6 +205,7 @@ public class AuthController {
 	public ResponseEntity<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
 		KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
 		LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null);
+		//sparrow - 로그인 루틴은 반복 구문을 통해 수행 횟수가 제어되어야 한다.
 		JwtTokenResponseDto tokens = authService.login(response, request);
 		return ResponseEntity.ok((tokens));
 	}

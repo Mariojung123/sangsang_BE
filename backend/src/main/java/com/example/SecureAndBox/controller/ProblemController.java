@@ -92,7 +92,7 @@ public class ProblemController {
 			return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8")
 				.body(content);
-		} catch (IOException e) {
+		} catch (IOException e) { //sparrow - return 문이 catch 문 내에서 사용됩니다.
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("File not found or read error");
 		}
 	}
