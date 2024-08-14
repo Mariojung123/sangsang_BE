@@ -69,12 +69,14 @@ public class SecurityConfig {
 					.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
 					.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
 					.anyRequest().authenticated())
+			.headers(headers -> headers  //xss 방지
+				.contentSecurityPolicy(csp -> csp
+					.policyDirectives("default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self'")))
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
 		return http.build();
 	}
 
-	@Bean
+	@Bean //cors 설정
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOriginPatterns(Arrays.asList(
