@@ -42,6 +42,8 @@ public class SecureCodeService {
 	public CompletableFuture<String> verifyAndForwardCode(CodeSubmission submission, User user) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
+				System.out.println("problem id : "+submission.getProblemId());
+				System.out.println("user code : "+submission.getUserCode());
 
 				Problem problem = problemService.getProblemById(submission.getProblemId());
 				UserProblemRelation up = userProblemService.createUserProblem(user,problem);
@@ -54,8 +56,11 @@ public class SecureCodeService {
 
 				// Convert CodeSubmission object to JSON
 				CodePayload payload = new CodePayload(submission.getUserCode());
-				String jsonPayload = objectMapper.writeValueAsString(payload);
 
+
+
+				String jsonPayload = objectMapper.writeValueAsString(payload);
+				System.out.println("payload : "+jsonPayload);
 				// Create an HTTP request
 				HttpRequest request = HttpRequest.newBuilder()
 					.uri(URI.create(PROBLEM_SERVER_URL))
@@ -100,9 +105,10 @@ public class SecureCodeService {
 		try {
 			if (jsonNode.has("message") && jsonNode.get("message").asText().contains("hacked")) {
 
-				userProblemService.saveRelation(up);
+
 				return responseBody;
 			} else if(jsonNode.has("message") && jsonNode.get("message").asText().contains("you protected")) {
+				userProblemService.saveRelation(up);
 				return responseBody;
 			}
 			else {
