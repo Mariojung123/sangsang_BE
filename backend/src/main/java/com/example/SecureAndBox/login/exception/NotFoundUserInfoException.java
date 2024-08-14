@@ -4,6 +4,6 @@ import static com.example.SecureAndBox.login.exception.LoginExceptionCode.*;
 
 public class NotFoundUserInfoException extends CustomException {
 	public NotFoundUserInfoException() {
-		super(NOT_FOUND_USER_INFO);
+		super(ErrorCode.NOT_FOUND_ERROR);
 	}
 }

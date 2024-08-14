@@ -12,7 +12,7 @@ import java.net.http.HttpResponse;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
+import java.util.logging.Logger;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
 
@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.io.IOException;
 import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class SecureCodeService {
 
 
 	private final ObjectMapper objectMapper;
-
+	private static final Logger logger = Logger.getLogger(ProblemService.class.getName());
 	private final HttpClient httpClient = HttpClient.newHttpClient();
 
 	public CompletableFuture<String> verifyAndForwardCode(CodeSubmission submission, User user) {
@@ -76,9 +77,17 @@ public class SecureCodeService {
 						throw new CompletionException("Error during HTTP request", ex);
 					})
 					.join();
-			} catch (Exception e) {  //sparrow - 부적절한 예외처리
-				throw new CompletionException("Error processing code submission", e);
+			} catch (JsonProcessingException e) {
+				// Handle specific JSON processing errors
+				throw new CompletionException("Error serializing the code submission to JSON", e);
+			} catch (IOException e) {
+				// Handle I/O related errors (e.g., network issues)
+				throw new CompletionException("I/O error occurred while processing the code submission", e);
+			} catch (Exception e) {
+				// Fallback for any other unforeseen exceptions
+				throw new CompletionException("Unexpected error during code submission processing", e);
 			}
+
 		});
 	}
 
@@ -97,36 +106,39 @@ public class SecureCodeService {
 	// Handle server response
 	private String handleServerResponse(String responseBody, UserProblemRelation up) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
+		String result;
+
 		try {
 			if (jsonNode.has("message")) {
 				String message = jsonNode.get("message").asText();
 
 				if (message.contains("hacked")) {
-					System.out.println("hacked");
-					return responseBody;
+					result = responseBody;
 				} else if (message.contains("you protected")) {
 					userProblemService.saveRelation(up);
-					System.out.println("you protected");
-					return responseBody;
+
+					result = responseBody;
 				} else if (message.contains("Invalid code") && jsonNode.has("output")) {
 					String output = jsonNode.get("output").asText();
-					return "Error: Invalid code detected. Details: " + output;
-				}else if(message.contains("Exploit execution failed"))
-				{	System.out.println("공격 수행 문제");
-					return responseBody;
+					result = "Error: Invalid code detected. Details: " + output;
+				} else if (message.contains("Exploit execution failed")) {
+					result = responseBody;
+				} else {
+					result = "Unexpected response format.";
 				}
-			}
-
-			if (jsonNode.has("error")) {
+			} else if (jsonNode.has("error")) {
 				String errorDetails = jsonNode.get("error").asText();
-				return "Error: " + errorDetails;
+				result = "Error: " + errorDetails;
+			} else {
+				result = "Unexpected response format.";
 			}
-
-			return "Unexpected response format.";
-		} catch (Exception e) { //sparrow - return문이 catch 문 내에서 사용 , 부적절한 예외처리
-			return "Error processing server response: " + e.getMessage();
+		} catch (Exception e) {
+			throw new RuntimeException("Error processing server response: " + e.getMessage(), e);
 		}
+
+		return result;
 	}
+
 
 }
 
