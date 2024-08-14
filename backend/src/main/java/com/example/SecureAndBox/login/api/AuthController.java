@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.webjars.NotFoundException;
 
 import com.example.SecureAndBox.login.application.AuthService;
 import com.example.SecureAndBox.login.application.KakaoLoginService;
@@ -37,6 +38,7 @@ import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
 import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
 
+import io.jsonwebtoken.security.InvalidKeyException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,9 +54,12 @@ public class AuthController {
 	private final AuthService authService;
 	private final KakaoLoginService kakaoLoginService;
 
-	private final UserService userService;
 
-	private final PasswordEncoder passwordEncoder;
+	private static final int MAX_ATTEMPTS = 5;
+	private static final long LOCK_TIME_DURATION = 15 * 60 * 1000; // 15 minutes
+
+	private Map<String, Integer> loginAttempts = new HashMap<>();
+	private Map<String, Long> lockTime = new HashMap<>();
 
 	private static final Logger logger = Logger.getLogger(AuthController.class.getName());
 
@@ -66,7 +71,6 @@ public class AuthController {
 	@Operation(summary = "카카오 로그인 code 가져오기")
 	@GetMapping("")
 	public ResponseEntity<?> redirectToKakaoLogin(HttpServletResponse response) throws IOException {
-		System.out.println("로그인 시도\n\n\n");
 		String clientId = apiKey;  // Replace with your Kakao REST API Key
 
 		String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
@@ -86,19 +90,67 @@ public class AuthController {
 	}
 	@Operation(summary = "로그인 -> 아이디 로그인")
 	@PostMapping("/login")
-	public ResponseEntity<?> login(
-		@Valid @RequestBody LoginDto dto
-	)
-	{
-		String id = dto.getUsername();
-		String pw = dto.getPw();
-		// 유효성 검사
-		if (!isValidId(id) || !isValidPassword(pw)) {
-			return ResponseEntity.badRequest().body("Invalid ID or Password format");
+	public ResponseEntity<?> login(@Valid @RequestBody LoginDto dto) {
+		ResponseEntity<?> response;
+		String username = dto.getUsername();
+		String password =dto.getPw();
+
+
+		if (isAccountLocked(username)) {
+			return ResponseEntity.status(HttpStatus.LOCKED).body("Account is locked. Please try again later.");
 		}
 
-		// 로그인 처리
-		return ResponseEntity.ok(authService.notSocialLogin(id, pw));
+		try {
+			if (authenticate(username, password)) {
+
+				JwtTokenResponseDto jwtTokenResponse = authService.notSocialLogin(username, password);
+				resetAttempts(username);
+				return ResponseEntity.ok(jwtTokenResponse);
+			} else {
+				incrementAttempts(username);
+				if (loginAttempts.get(username) >= MAX_ATTEMPTS) {
+					lockAccount(username);
+					return ResponseEntity.status(HttpStatus.LOCKED).body("Account locked due to too many failed attempts.");
+				}
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials.");
+			}
+		} catch (Exception e) {
+			response =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred.");
+		}
+		return response;
+	}
+
+	private boolean isAccountLocked(String username) {
+		Long lockTime = this.lockTime.get(username);
+		if (lockTime == null) return false;
+
+		if (System.currentTimeMillis() - lockTime > LOCK_TIME_DURATION) {
+			this.lockTime.remove(username);
+			this.loginAttempts.remove(username);
+			return false;
+		}
+		return true;
+	}
+
+	private boolean authenticate(String username, String pw)
+	{
+		if (!isValidId(username) || !isValidPassword(pw)) {
+			return false;
+		}
+
+		return true;
+	}
+	private void incrementAttempts(String username) {
+		loginAttempts.put(username, loginAttempts.getOrDefault(username, 0) + 1);
+	}
+
+	private void resetAttempts(String username) {
+		loginAttempts.remove(username);
+		lockTime.remove(username);
+	}
+
+	private void lockAccount(String username) {
+		lockTime.put(username, System.currentTimeMillis());
 	}
 	@Operation(summary = "회원가입")
 	@PostMapping("/signUp")
@@ -127,70 +179,51 @@ public class AuthController {
 		return Pattern.matches(passwordPattern, pw);
 	}
 
-
-	/*@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
-	@GetMapping("/callback")
-	public ResponseEntity<?> kakaoCallback(@RequestParam String code) throws IOException {
-		try {
-			System.out.println("callback\n\n\n");
-			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
-			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name can be null here
-			JwtTokenResponseDto tokens = authService.login(accessToken, request);
-			return ResponseEntity.ok(tokens);
-		} catch (AuthenticationException e) {
-			// Handle general authentication errors
-			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed.");
-		} catch (IOException e) {
-			// Handle IO-related errors
-			logger.log(Level.SEVERE, "IO error during Kakao callback processing: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error.");
-		} catch (Exception e) {
-			// Catch-all for any other exceptions
-			logger.log(Level.SEVERE, "Unexpected error during Kakao callback processing: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
-		}
-	}*/
 	@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
 	@GetMapping("/callback")
 	public ResponseEntity<String> kakaoCallback(@RequestParam String code) {
+
+		ResponseEntity<String> response;
 		try {
 			// 카카오 API를 사용하여 액세스 토큰 및 리프레시 토큰 가져오기
 			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
 			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name은 여기서 null로 설정
-
+			//sparrow - 로그인 루틴은 반복 구문을 통해 수행 횟수가 제어되어야 한다.
 			// JWT 토큰 생성
 			JwtTokenResponseDto tokens = authService.login(accessToken, request);
 
 			// 토큰 정보를 JavaScript에 주입하여 HTML 반환
 			String htmlContent = String.format("""
-            <script>
-                const userInfo = {
-                    method: 'kakao',
-                    accessToken: '%s',
-                    refreshToken: '%s',
-                };
-                window.opener.postMessage(userInfo, "*");
-               
-            </script>
-            """, tokens.getAccessToken(), tokens.getRefreshToken());
+				<script>
+				    const userInfo = {
+				        method: 'kakao',
+				        accessToken: '%s',
+				        refreshToken: '%s',
+				    };
+				    window.opener.postMessage(userInfo, "*");
+				</script>%n""", tokens.getAccessToken(), tokens.getRefreshToken());
 
-			return ResponseEntity.ok()
-					.contentType(MediaType.TEXT_HTML)
-					.body(htmlContent);
+			response = ResponseEntity.ok()
+				.contentType(MediaType.TEXT_HTML)
+				.body(htmlContent);
 
 		} catch (AuthenticationException e) {
 			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("<script>alert('Authentication failed.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body("<script>alert('Authentication failed.'); window.close();</script>");
+
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "IO error during Kakao callback processing: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('Internal server error.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("<script>alert('Internal server error.'); window.close();</script>");
+
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Unexpected error during Kakao callback processing: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('An unexpected error occurred.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("<script>alert('An unexpected error occurred.'); window.close();</script>");
 		}
+		return response;
 	}
-
 
 
 	@Operation(summary = "카카오 로그아웃 하기")
@@ -205,6 +238,7 @@ public class AuthController {
 	public ResponseEntity<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
 		KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
 		LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null);
+		//sparrow - 로그인 루틴은 반복 구문을 통해 수행 횟수가 제어되어야 한다.
 		JwtTokenResponseDto tokens = authService.login(response, request);
 		return ResponseEntity.ok((tokens));
 	}
