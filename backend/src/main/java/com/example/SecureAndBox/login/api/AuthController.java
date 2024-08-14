@@ -66,7 +66,7 @@ public class AuthController {
 	@Operation(summary = "카카오 로그인 code 가져오기")
 	@GetMapping("")
 	public ResponseEntity<?> redirectToKakaoLogin(HttpServletResponse response) throws IOException {
-		System.out.println("로그인 시도\n\n\n");
+
 		String clientId = apiKey;  // Replace with your Kakao REST API Key
 
 		String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
@@ -75,6 +75,7 @@ public class AuthController {
 			+ "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8.toString())
 			+ "&scope=profile_nickname";
 
+		logger.log(Level.INFO, "Kakao login redirect requested");
 		// Set CORS headers
 		response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 		response.setHeader("Access-Control-Allow-Credentials", "true");

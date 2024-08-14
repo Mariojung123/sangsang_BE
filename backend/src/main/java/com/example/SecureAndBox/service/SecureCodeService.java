@@ -12,13 +12,15 @@ import java.net.http.HttpResponse;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
 
 import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.entity.UserProblemRelation;
+import com.example.SecureAndBox.login.api.AuthController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,28 +41,20 @@ public class SecureCodeService {
 
 	private final HttpClient httpClient = HttpClient.newHttpClient();
 
+	private static final Logger logger = Logger.getLogger(SecureCodeService.class.getName());
+
 	public CompletableFuture<String> verifyAndForwardCode(CodeSubmission submission, User user) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				System.out.println("problem id : "+submission.getProblemId());
-				System.out.println("user code : "+submission.getUserCode());
-
 				Problem problem = problemService.getProblemById(submission.getProblemId());
 				UserProblemRelation up = userProblemService.createUserProblem(user,problem);
-
-
-				// Encode user code to Base64
-			//	String encodedUserCode = Base64.getEncoder()
-				//	.encodeToString(submission.getUserCode().getBytes(StandardCharsets.UTF_8));
-			//	submission.setUserCode(encodedUserCode);
+				logger.log(Level.INFO, "User :  "+user.getUsername() +"problem"  + problem.getTitle());
 
 				// Convert CodeSubmission object to JSON
 				CodePayload payload = new CodePayload(submission.getUserCode());
 
 
-
 				String jsonPayload = objectMapper.writeValueAsString(payload);
-				System.out.println("payload : "+jsonPayload);
 				// Create an HTTP request
 				HttpRequest request = HttpRequest.newBuilder()
 					.uri(URI.create(PROBLEM_SERVER_URL))
@@ -104,19 +98,19 @@ public class SecureCodeService {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
 		try {
 			if (jsonNode.has("message") && jsonNode.get("message").asText().contains("hacked")) {
-
-
 				return responseBody;
 			} else if(jsonNode.has("message") && jsonNode.get("message").asText().contains("you protected")) {
 				userProblemService.saveRelation(up);
 				return responseBody;
 			}
 			else {
-
 				if (jsonNode.has("message") && jsonNode.get("message").asText().contains("Invalid code")) {
 					String output = jsonNode.get("output").asText();
 					return "Error: Invalid code detected. Details: " + output;
-				} else if (jsonNode.has("error")) {
+				}else if(jsonNode.get("message").asText().contains("Incorrect syntax in function")){
+					return "Secure Server Error";
+				}
+				else if (jsonNode.has("error")) {
 					String errorDetails = jsonNode.get("error").asText();
 					return "Error: " + errorDetails;
 				}
