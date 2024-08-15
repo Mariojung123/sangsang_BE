@@ -23,6 +23,7 @@ import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.etc.LanguageType;
 import com.example.SecureAndBox.exception.ProblemNotFoundException;
+import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.repository.ProblemRepository;
 
 import jakarta.transaction.Transactional;
@@ -85,7 +86,7 @@ public class ProblemService {
 		return problems;
 	}*/
 
-	public String getSkeletonCode(String topic, String title, LanguageType type) throws IOException {
+	/*public String getSkeletonCode(String topic, String title, LanguageType type) throws IOException {
 		// 리소스 경로를 String.format으로 좀 더 읽기 쉽게 구성
 		String resourcePath = String.format("static/problem/%s/%s/%s.%s",
 			topic, type.getKey(), title, type.getKey());
@@ -94,6 +95,18 @@ public class ProblemService {
 		// 파일 데이터를 읽고 String으로 변환
 		byte[] bdata = FileCopyUtils.copyToByteArray(resource.getInputStream());
 		return new String(bdata, StandardCharsets.UTF_8);
+	}*/
+
+	public String getSkeletonCode(Map<String, String> code, String type) throws IOException {
+		// 해당 타입의 코드를 가져옴
+		String skeletonCode = code.get(type);
+
+		// 만약 가져온 코드가 null이면 예외를 던짐
+		if (skeletonCode == null) {
+			throw new IOException("Skeleton code not found for type: " + type);
+		}
+
+		return skeletonCode;
 	}
 
 	public Object getProblem(Long problemId) throws IOException {
@@ -109,8 +122,8 @@ public class ProblemService {
 			.collect(Collectors.toList());
 
 		// 스켈레톤 코드 가져오기
-		String phpCode = getSkeletonCode(problem.getTopic(), problem.getTitle(), LanguageType.PHP);
-		String pythonCode = getSkeletonCode(problem.getTopic(), problem.getTitle(), LanguageType.PYTHON);
+		String phpCode = getSkeletonCode(problem.getType(),"php");
+		String pythonCode = getSkeletonCode(problem.getType(), "python");
 
 		// 타입 정보 생성
 		ProblemDetailsDto.Type type = ProblemDetailsDto.Type.builder()

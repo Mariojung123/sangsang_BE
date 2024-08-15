@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum LanguageType {
 	PHP("php"),
-	PYTHON("py"),
+	PYTHON("python"),
 	CPP("cpp");
 
 	private String key;

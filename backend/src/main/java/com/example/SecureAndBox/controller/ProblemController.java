@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.example.SecureAndBox.dto.CodeSubmission;
 import com.example.SecureAndBox.dto.ProblemRequestDto;
+import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.etc.LanguageType;
 import com.example.SecureAndBox.login.interceptor.UserId;
@@ -82,11 +83,11 @@ public class ProblemController {
 	@Operation(summary="스켈레톤 코드 가져오기")
 	@GetMapping("/skeleton-code")
 	public ResponseEntity<String> getSkeletonCode(
-		@RequestParam("topic") String topic,
-		@RequestParam("title") String title,
+		@RequestParam("pid") Long pid,
 		@RequestParam LanguageType type) {
+		Problem problem = problemService.getProblemById(pid);
 		try {
-			String content = problemService.getSkeletonCode(topic,title,type);
+			String content = problemService.getSkeletonCode(problem.getType(),type.getKey());
 			return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8")
 				.body(content);
