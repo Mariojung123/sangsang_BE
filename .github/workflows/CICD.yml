@@ -1,0 +1,22 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+    build:
+      - name: "NCP 로그인 및 배포"
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USERNAME }}
+          password: ${{ secrets.NCP_PASSWORD }}
+          port: ${{ secrets.NCP_PORT }}
+          script: |
+           cd /srv/sangsang_BE
+           git pull origin develop
+           cd Backend
+           ./run.sh
