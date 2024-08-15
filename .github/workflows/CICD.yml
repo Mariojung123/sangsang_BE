@@ -18,5 +18,5 @@ jobs:
           script: |
            cd /srv/sangsang_BE
            git pull origin develop
-           cd Backend
+           cd backend
            ./run.sh
