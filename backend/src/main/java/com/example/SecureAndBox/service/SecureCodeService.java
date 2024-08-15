@@ -102,15 +102,15 @@ public class SecureCodeService {
 			} else if(jsonNode.has("message") && jsonNode.get("message").asText().contains("you protected")) {
 				userProblemService.saveRelation(up);
 				return responseBody;
+			}else if(jsonNode.get("message").asText().contains("Incorrect syntax in function")) {
+				return "기능 구현에 실패하였습니다.";
 			}
 			else {
 				if (jsonNode.has("message") && jsonNode.get("message").asText().contains("Invalid code")) {
 					String output = jsonNode.get("output").asText();
-					return "Error: Invalid code detected. Details: " + output;
-				}else if(jsonNode.get("message").asText().contains("Incorrect syntax in function")){
-					return "Secure Server Error";
+					return "빌드에 실패하였습니다. 코드를 다시 확인해주세요. Details: " + output;
 				}
-				else if (jsonNode.has("error")) {
+				else if (jsonNode.has("error") || jsonNode.get("message").asText().contains("Incorrect syntax in function")) {
 					String errorDetails = jsonNode.get("error").asText();
 					return "Error: " + errorDetails;
 				}
