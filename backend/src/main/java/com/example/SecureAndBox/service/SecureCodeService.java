@@ -97,9 +97,9 @@ public class SecureCodeService {
 	private String handleServerResponse(String responseBody,UserProblemRelation up) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
 		try {
-			if (jsonNode.has("message") && jsonNode.get("message").asText().contains("hacked")) {
+			if (jsonNode.has("message") && jsonNode.get("output").asText().contains("hacked")) {
 				return responseBody;
-			} else if(jsonNode.has("message") && jsonNode.get("message").asText().contains("you protected")) {
+			} else if(jsonNode.has("message") && jsonNode.get("output").asText().contains("you protected")) {
 				userProblemService.saveRelation(up);
 				return responseBody;
 			}else if(jsonNode.get("message").asText().contains("Incorrect syntax in function")) {
