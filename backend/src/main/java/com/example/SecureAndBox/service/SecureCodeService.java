@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.io.IOException;
 import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
@@ -75,8 +76,16 @@ public class SecureCodeService {
 						throw new CompletionException("Error during HTTP request", ex);
 					})
 					.join();
+				//부적절한 예외처리
+			} catch (JsonProcessingException e) {
+				logger.log(Level.SEVERE, "Error processing code submission payload", e);
+				throw new CompletionException("Error processing code submission payload", e);
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "I/O error occurred during processing", e);
+				throw new CompletionException("I/O error occurred during processing", e);
 			} catch (Exception e) {
-				throw new CompletionException("Error processing code submission", e);
+				logger.log(Level.SEVERE, "Unexpected error occurred during code submission processing", e);
+				throw new CompletionException("Unexpected error occurred during code submission processing", e);
 			}
 		});
 	}
@@ -98,11 +107,8 @@ public class SecureCodeService {
 		System.out.println("Server response: " + responseBody);
 
 		try {
-			if (responseBody.startsWith("Success: ")) {
-				responseBody = responseBody.substring("Success: ".length());
-			}
-
 			JsonNode jsonNode = objectMapper.readTree(responseBody);
+			System.out.println("jsonNode: " + jsonNode);
 
 			if (jsonNode.has("message") && jsonNode.has("output")) {
 				String output = jsonNode.get("output").asText();
@@ -117,11 +123,12 @@ public class SecureCodeService {
 			if (jsonNode.has("error")) {
 				if (jsonNode.has("message") && jsonNode.get("message") != null) {
 					String message = jsonNode.get("message").asText();
-					if (message.contains("Incorrect syntax in function")) {
-						return "기능 구현에 실패하였습니다." + "\n\n" + responseBody;
-					} else if (message.contains("Invalid code")) {
+					System.out.println("message: " + message);
+					if (message.equals("Incorrect syntax in function")) {
+						return responseBody;
+					} else if (message.equals("Invalid code")) {
 						String output = jsonNode.has("output") ? jsonNode.get("output").asText() : "No output";
-						return responseBody + "\n\n빌드에 실패하였습니다. 코드를 다시 확인해주세요. Details: " + output;
+						return responseBody;
 					}
 				}
 				String errorDetails = jsonNode.get("error") != null ? jsonNode.get("error").asText() : "Unknown error";

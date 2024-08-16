@@ -25,6 +25,8 @@ import com.example.SecureAndBox.login.interceptor.UserId;
 import com.example.SecureAndBox.service.ProblemService;
 import com.example.SecureAndBox.service.SecureCodeService;
 
+import feign.Response;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -61,20 +63,23 @@ public class ProblemController {
 
 		return ResponseEntity.ok(problemService.getProblemList(pageable));
 	}
+	@Hidden
 	@Operation(summary="스켈레톤 코드 가져오기")
 	@GetMapping("/skeleton-code")
 	public ResponseEntity<String> getSkeletonCode(
 		@RequestParam("pid") Long pid,
 		@RequestParam LanguageType type) {
 		Problem problem = problemService.getProblemById(pid);
+		ResponseEntity<String> response;
 		try {
 			String content = problemService.getSkeletonCode(problem.getType(),type.getKey());
-			return ResponseEntity.ok()
+			response = ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8")
 				.body(content);
 		} catch (IOException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("File not found or read error");
+			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("File not found or read error");
 		}
+		return response;
 	}
 	@Operation(summary = "문제 디테일 가져오기")
 	@GetMapping("/details")

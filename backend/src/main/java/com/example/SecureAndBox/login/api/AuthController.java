@@ -165,11 +165,12 @@ public class AuthController {
 	@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
 	@GetMapping("/callback")
 	public ResponseEntity<String> kakaoCallback(@RequestParam String code) {
+		ResponseEntity<String> response;
 		try {
 			// 카카오 API를 사용하여 액세스 토큰 및 리프레시 토큰 가져오기
 			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
 			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name은 여기서 null로 설정
-
+			//sparrow 로그인루틴 처리 필요
 			// JWT 토큰 생성
 			JwtTokenResponseDto tokens = authService.login(accessToken, request);
 
@@ -186,20 +187,21 @@ public class AuthController {
             </script>
             """, tokens.getAccessToken(), tokens.getRefreshToken());
 
-			return ResponseEntity.ok()
+			response = ResponseEntity.ok()
 					.contentType(MediaType.TEXT_HTML)
 					.body(htmlContent);
 
 		} catch (AuthenticationException e) {
 			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("<script>alert('Authentication failed.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("<script>alert('Authentication failed.'); window.close();</script>");
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "IO error during Kakao callback processing: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('Internal server error.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('Internal server error.'); window.close();</script>");
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Unexpected error during Kakao callback processing: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('An unexpected error occurred.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('An unexpected error occurred.'); window.close();</script>");
 		}
+		return response;
 	}
 
 
@@ -211,11 +213,13 @@ public class AuthController {
 		authService.logout(authentication);
 		return ResponseEntity.ok("로그아웃에 성공하였습니다.");
 	}
+
 	@Operation(summary = "카카오 로그인 리프레시 토큰 받기")
 	@PostMapping("/refresh-kakao-token")
 	public ResponseEntity<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
 		KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
 		LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null);
+		//sparrow 로그인루틴 처리 필요
 		JwtTokenResponseDto tokens = authService.login(response, request);
 		return ResponseEntity.ok((tokens));
 	}

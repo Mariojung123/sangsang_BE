@@ -38,22 +38,26 @@ public class VideoController {
 	@Operation(summary = "영상 추가 -> 어드민만 가능")
 	@PostMapping("")
 	public ResponseEntity<?> createVideo(@RequestBody VideoRequestDto request) {
+		ResponseEntity<?> response;
 		try {
 			videoService.createVideo(request);
-			return ResponseEntity.ok("영상이 성공적으로 추가되었습니다.");
+			response= ResponseEntity.ok("영상이 성공적으로 추가되었습니다.");
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");
+			response= ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");
 		}
+		return response;
 	}
 
 	@Operation(summary = "영상 삭제 -> 어드민만 가능")
 	@DeleteMapping("")
 	public ResponseEntity<?> deleteVideo(@RequestParam Long videoId) {
+		ResponseEntity<?> response;
 		try {
 			videoService.deleteVideo(videoId);
-			return ResponseEntity.ok("동영상이 삭제되었습니다.");
+			response= ResponseEntity.ok("동영상이 삭제되었습니다.");
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");
+			response= ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");
 		}
+		return response;
 	}
 }
