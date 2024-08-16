@@ -3,6 +3,7 @@ package com.example.SecureAndBox.controller;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.SecureAndBox.dto.CommentRequestDto;
-import com.example.SecureAndBox.dto.PostRequestDto;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.login.interceptor.UserId;
 import com.example.SecureAndBox.service.CommentService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,18 +31,14 @@ public class CommentController {
 	@PostMapping("/create")
 	public ResponseEntity<?> createPost(
 		@Parameter(hidden = true) @UserId User user,
-		@RequestBody CommentRequestDto commentDto) {
-		String description = Jsoup.clean(commentDto.getContent(), Safelist.basic());
-
-
-
+		@Valid @RequestBody CommentRequestDto commentDto) {
+		String description = Jsoup.clean(commentDto.getContent(), Safelist.basic());//XSS 방지
 		commentService.createComment(commentDto,description, user);
-
 		return ResponseEntity.ok().build();
 	}
 
 	@Operation(summary = "댓글 삭제")
-	@PostMapping("/delete")
+	@DeleteMapping("/delete")
 	public ResponseEntity<?> deletePost(
 		@Parameter(hidden = true) @UserId User user,
 		@RequestParam Long commentId) {

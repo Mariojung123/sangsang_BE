@@ -1,5 +1,7 @@
 package com.example.SecureAndBox.login.api;
 
+import static com.example.SecureAndBox.login.exception.LoginExceptionCode.*;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -34,6 +36,7 @@ import com.example.SecureAndBox.login.dto.request.LoginDto;
 import com.example.SecureAndBox.login.dto.request.LoginRequestDto;
 import com.example.SecureAndBox.login.dto.request.SignUpDto;
 import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
+import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
 import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
 
@@ -94,6 +97,7 @@ public class AuthController {
 		String id = dto.getUsername();
 		String pw = dto.getPw();
 		// 유효성 검사
+
 		if (!isValidId(id) || !isValidPassword(pw)) {
 			return ResponseEntity.badRequest().body("Invalid ID or Password format");
 		}
@@ -119,13 +123,19 @@ public class AuthController {
 	private boolean isValidId(String id) {
 		// ID 유효성 검사 로직 (예: 영숫자만 허용, 5~20자 사이)
 		String idPattern = "^[a-zA-Z0-9]{5,20}$";
-		return Pattern.matches(idPattern, id);
+		if(Pattern.matches(idPattern, id))
+			return true;
+		else
+			throw new CustomException(INVALID_USER_ID);
 	}
 
 	private boolean isValidPassword(String pw) {
 		// 비밀번호 유효성 검사 로직 (예: 영숫자와 특수문자만 허용, 8~30자 사이)
 		String passwordPattern = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,30}$";
-		return Pattern.matches(passwordPattern, pw);
+		if(Pattern.matches(passwordPattern, pw))
+			return true;
+		else
+			throw new CustomException(INVALID_PASSWORD);
 	}
 
 

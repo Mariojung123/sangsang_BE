@@ -34,8 +34,8 @@ public class PostController {
 	@PostMapping("/create")
 	public ResponseEntity<?> createPost(
 		@Parameter(hidden = true) @UserId User user,
-		@RequestBody PostRequestDto postDto) {
-		String description = Jsoup.clean(postDto.getContent(), Safelist.basic());
+		@Valid @RequestBody PostRequestDto postDto) {
+		String description = Jsoup.clean(postDto.getContent(), Safelist.basic()); //XSS 방지
 		postService.createPost(postDto,description, user);
 
 		return ResponseEntity.ok().build();

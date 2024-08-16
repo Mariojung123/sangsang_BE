@@ -14,7 +14,6 @@ public class UserService {
 
 	private final UserRepository userRepository;
 
-
 	public User findByUserId(Long userId) {
 		return userRepository.findByUserId(userId)
 			.orElseThrow(NotFoundUserException::new);

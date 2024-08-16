@@ -94,31 +94,44 @@ public class SecureCodeService {
 	}
 
 	// Handle server response
-	private String handleServerResponse(String responseBody,UserProblemRelation up) throws JsonProcessingException {
-		JsonNode jsonNode = objectMapper.readTree(responseBody);
-		try {
-			if (jsonNode.has("message") && jsonNode.has("output") && jsonNode.get("output").asText().contains("hacked")) {
-				return responseBody;
-			} else if(jsonNode.has("message") &&  jsonNode.has("output") && jsonNode.get("output").asText().contains("you protected")) {
-				userProblemService.saveRelation(up);
-				return responseBody;
-			}else if(jsonNode.has("error") && jsonNode.get("message").asText().contains("Incorrect syntax in function")) {
-				return "기능 구현에 실패하였습니다."+"\n\n"+responseBody;
-			}
-			else {
-				if (jsonNode.has("error") && jsonNode.get("message").asText().contains("Invalid code")) {
-					String output = jsonNode.get("output").asText();
-					return responseBody +"\n\n빌드에 실패하였습니다. 코드를 다시 확인해주세요. Details: " + output;
-				}
-				else if (jsonNode.has("error")) {
-					String errorDetails = jsonNode.get("error").asText();
-					return responseBody +"\n\nError: " + errorDetails;
-				}
-			}
-			return "Unexpected response format.";
-		} catch (Exception e) {
+	private String handleServerResponse(String responseBody, UserProblemRelation up) throws JsonProcessingException {
+		System.out.println("Server response: " + responseBody);
 
-			return responseBody + e.getMessage();
+		try {
+			if (responseBody.startsWith("Success: ")) {
+				responseBody = responseBody.substring("Success: ".length());
+			}
+
+			JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+			if (jsonNode.has("message") && jsonNode.has("output")) {
+				String output = jsonNode.get("output").asText();
+				if (output != null && output.contains("hacked")) {
+					return responseBody;
+				} else if (output != null && output.contains("you protected")) {
+					userProblemService.saveRelation(up);
+					return responseBody;
+				}
+			}
+
+			if (jsonNode.has("error")) {
+				if (jsonNode.has("message") && jsonNode.get("message") != null) {
+					String message = jsonNode.get("message").asText();
+					if (message.contains("Incorrect syntax in function")) {
+						return "기능 구현에 실패하였습니다." + "\n\n" + responseBody;
+					} else if (message.contains("Invalid code")) {
+						String output = jsonNode.has("output") ? jsonNode.get("output").asText() : "No output";
+						return responseBody + "\n\n빌드에 실패하였습니다. 코드를 다시 확인해주세요. Details: " + output;
+					}
+				}
+				String errorDetails = jsonNode.get("error") != null ? jsonNode.get("error").asText() : "Unknown error";
+				return responseBody + "\n\nError: " + errorDetails;
+			}
+
+			return "Unexpected response format.";
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return "Error processing response: " + e.getMessage();
 		}
 	}
 }

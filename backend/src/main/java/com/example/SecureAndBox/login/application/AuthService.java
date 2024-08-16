@@ -1,5 +1,7 @@
 package com.example.SecureAndBox.login.application;
 
+import static com.example.SecureAndBox.login.exception.LoginExceptionCode.*;
+
 import java.io.IOException;
 
 import com.example.SecureAndBox.login.dto.response.JwtTokenResponseDto;
@@ -24,6 +26,7 @@ import com.example.SecureAndBox.login.dto.SocialInfoDto;
 import com.example.SecureAndBox.login.dto.request.LoginRequestDto;
 import com.example.SecureAndBox.login.dto.request.SignUpDto;
 import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
+import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.login.exception.NotFoundUserInfoException;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
 import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
@@ -80,11 +83,11 @@ public class AuthService {
 
 	public JwtTokenResponseDto notSocialLogin(String username, String rawPassword) {
 		User user = userRepository.findByUsername(username)
-			.orElseThrow(() -> new NotFoundException("존재하지 않는 아이디 입니다."));
+			.orElseThrow(() -> new CustomException(NOT_MATCH_USERID));
 
 		// 비밀번호 비교
 		if (!passwordEncoder.matches(rawPassword, user.getPw())) {
-			throw new InvalidKeyException("올바르지 않은 비밀번호입니다.");
+			throw new CustomException(NOT_MATCH_PASSWORD);
 		}
 
 		JwtTokenResponseDto jwtTokenResponse = jwtUtil.generateTokensBypw(

@@ -74,7 +74,7 @@ public class SecurityConfig {
 				authorizationManagerRequestMatcherRegistry
 					.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
 					.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
-				//	.requestMatchers(ADMIN_PATTERNS).hasRole(User.Role.ADMIN.name())
+				    .requestMatchers(ADMIN_PATTERNS).hasRole(User.Role.ADMIN.name())
 					.anyRequest().authenticated())
 		//	.headers(headers -> headers  //xss 방지
 		//		.contentSecurityPolicy(csp -> csp
