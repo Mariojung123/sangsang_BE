@@ -61,6 +61,7 @@ public class PostService {
 
 		return PostDetailsResponseDto.builder()
 				.title(post.getTitle())
+				.postId(post.getPostId())
 				.content(post.getContent())
 				.username("익명")
 				.parent(post.getParent())
@@ -75,6 +76,7 @@ public class PostService {
 
 		return post.stream().map(p -> PostResponseDto.builder()
 				.title(p.getTitle())
+				.postId(p.getPostId())
 				.isMe(isMe(user, p))
 				.username("익명")
 				.parent(p.getParent())
@@ -92,6 +94,7 @@ public class PostService {
 		List<Post> post = postRepository.findByParent(parent);
 		if (!post.isEmpty()) {
 			return post.stream().map(p -> PostResponseDto.builder()
+				.postId(p.getPostId())
 				.title(p.getTitle())
 				.isMe(isMe(user, p))
 				.username("익명")
@@ -105,5 +108,9 @@ public class PostService {
 
 	public List<String> getParentPost() {
 		return problemService.getProblemId();
+	}
+
+	public Post getPost(Long postId) {
+		return postRepository.findById(postId).get();
 	}
 }

@@ -36,12 +36,12 @@ public class Comment {
 
 
 	@ManyToOne
-	@JoinColumn(name = "user_id",nullable = false)
+	@JoinColumn(name = "userId",nullable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private User user;
 
 	@ManyToOne
-	@JoinColumn(name = "post_id",nullable = false)
+	@JoinColumn(name = "postId",nullable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Post post;
 
