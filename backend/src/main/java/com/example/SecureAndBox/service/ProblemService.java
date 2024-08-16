@@ -176,4 +176,11 @@ public class ProblemService {
 		Optional<Problem> optionalProblem = problemRepository.findByProblemId(problemId);
 		return optionalProblem.orElseThrow(() -> new ProblemNotFoundException("Problem not found"));
 	}
+
+	public List<String> getProblemId()
+	{
+		List<Problem> problems = problemRepository.findAll();
+		List<String> problemId = problems.stream().map(problem -> problem.getProblemId().toString()).collect(Collectors.toList());
+		return problemId;
+	}
 }

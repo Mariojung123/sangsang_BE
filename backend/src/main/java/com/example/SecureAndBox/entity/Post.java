@@ -46,6 +46,9 @@ public class Post {
 	@Column(nullable = true)
 	private LocalDateTime updatedAt;
 
+	@Column(nullable = false)
+	private Long parent;
+
 }
 
 
