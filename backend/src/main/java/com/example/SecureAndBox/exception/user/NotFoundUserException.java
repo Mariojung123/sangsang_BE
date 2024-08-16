@@ -1,4 +1,4 @@
-package com.example.SecureAndBox.exception;
+package com.example.SecureAndBox.exception.user;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

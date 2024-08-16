@@ -1,5 +1,7 @@
 package com.example.SecureAndBox.service;
 
+import static com.example.SecureAndBox.exception.post.PostExceptionCode.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +15,9 @@ import com.example.SecureAndBox.entity.Comment;
 import com.example.SecureAndBox.entity.Post;
 import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
+import com.example.SecureAndBox.exception.post.NotFoundCommentException;
+import com.example.SecureAndBox.exception.post.NotFoundPostException;
+import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.repository.CommentRepository;
 import com.example.SecureAndBox.repository.PostRepository;
 
@@ -29,7 +34,7 @@ public class CommentService {
 		// 댓글 생성
 
 		if(!postRepository.existsByPostId(commentDto.getPostId())) {
-			throw new IllegalArgumentException("해당 게시물이 존재하지 않습니다.");
+			throw new NotFoundPostException();
 		}
 
 		Comment comment = Comment.builder()
@@ -43,10 +48,10 @@ public class CommentService {
 
 	public void deleteComment(Long commentId, User user) {
 		Comment comment = commentRepository.findById(commentId)
-				.orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
+			.orElseThrow(NotFoundCommentException::new);
 
 		if(!comment.getUser().getUserId().equals(user.getUserId())) {
-			throw new IllegalArgumentException("게시물 작성자만 삭제할 수 있습니다.");
+			throw new CustomException(PERMISSION_DENIED);
 		}
 
 		commentRepository.delete(comment);

@@ -64,7 +64,7 @@ public class PostController {
 	}
 
 	@Operation(summary = "게시물 보기")
-	@GetMapping("/read/{postId}")
+	@GetMapping("/read")
 	public ResponseEntity<?> readPost(@Parameter(hidden = true) @UserId User user,
 		@RequestParam Long postId){
 

@@ -1,5 +1,9 @@
 package com.example.SecureAndBox.service;
 
+import static com.example.SecureAndBox.exception.post.PostExceptionCode.*;
+import static com.example.SecureAndBox.exception.problem.ProblemExceptionCode.*;
+import static com.example.SecureAndBox.exception.problem.ProblemExceptionCode.NOT_FOUND_PROBLEM;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
@@ -23,6 +27,7 @@ import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.etc.LanguageType;
 import com.example.SecureAndBox.exception.ProblemNotFoundException;
+import com.example.SecureAndBox.exception.problem.ProblemExceptionCode;
 import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.repository.ProblemRepository;
 
@@ -75,35 +80,13 @@ public class ProblemService {
 		return problemResponseList;
 	}
 
-	/*public Object getProblemListByDifficulty(String difficulty) {
-		List<Problem> problems = problemRepository.findAllByDifficulty(difficulty);
-		return problems;
-
-	}
-
-	public Object getProblemListByTopic(String topic) {
-		List<Problem> problems = problemRepository.findAllByTopic(topic);
-		return problems;
-	}*/
-
-	/*public String getSkeletonCode(String topic, String title, LanguageType type) throws IOException {
-		// 리소스 경로를 String.format으로 좀 더 읽기 쉽게 구성
-		String resourcePath = String.format("static/problem/%s/%s/%s.%s",
-			topic, type.getKey(), title, type.getKey());
-		Resource resource = new ClassPathResource(resourcePath);
-
-		// 파일 데이터를 읽고 String으로 변환
-		byte[] bdata = FileCopyUtils.copyToByteArray(resource.getInputStream());
-		return new String(bdata, StandardCharsets.UTF_8);
-	}*/
-
 	public String getSkeletonCode(Map<String, String> code, String type) throws IOException {
 		// 해당 타입의 코드를 가져옴
 		String skeletonCode = code.get(type);
 
 		// 만약 가져온 코드가 null이면 예외를 던짐
 		if (skeletonCode == null) {
-			throw new IOException("Skeleton code not found for type: " + type);
+			throw new CustomException(NOT_FOUND_CODE);
 		}
 
 		return skeletonCode;
@@ -149,7 +132,7 @@ public class ProblemService {
 	public Problem createProblem(User user, ProblemRequestDto problemRequestDto) throws AccessDeniedException {
 		if(user.getRole()!= User.Role.ADMIN)
 		{
-			throw new AccessDeniedException("관리자 권한이 부족합니다.");
+			throw new CustomException(PERMISSION_DENIED);
 		}
 
 		List<Map<String, String>> tags = problemRequestDto.getTag().stream()
@@ -174,7 +157,7 @@ public class ProblemService {
 	}
 	public Problem getProblemById(Long problemId) {
 		Optional<Problem> optionalProblem = problemRepository.findByProblemId(problemId);
-		return optionalProblem.orElseThrow(() -> new ProblemNotFoundException("Problem not found"));
+		return optionalProblem.orElseThrow(() -> new CustomException(NOT_FOUND_PROBLEM));
 	}
 
 	public List<String> getProblemId()

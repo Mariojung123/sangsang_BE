@@ -1,5 +1,7 @@
 package com.example.SecureAndBox.service;
 
+import static com.example.SecureAndBox.exception.post.PostExceptionCode.*;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -13,6 +15,9 @@ import com.example.SecureAndBox.dto.PostResponseDto;
 import com.example.SecureAndBox.entity.Post;
 import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
+import com.example.SecureAndBox.exception.post.NotFoundPostException;
+import com.example.SecureAndBox.exception.post.NotFoundProblemException;
+import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.repository.PostRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +34,7 @@ public class PostService {
 				Problem problem = problemService.getProblemById(postDto.getParent());
 			}
 			catch(Exception e) {
-				throw new IllegalArgumentException("해당 문제가 존재하지 않습니다.");
+				throw new NotFoundProblemException();
 			}
 		}
 
@@ -46,10 +51,10 @@ public class PostService {
 
 	public void deletePost(Long postId, User user) {
 		Post post = postRepository.findById(postId)
-				.orElseThrow(() -> new IllegalArgumentException("해당 게시물이 존재하지 않습니다."));
+				.orElseThrow(NotFoundPostException::new);
 
 		if(!post.getUser().getUserId().equals(user.getUserId())) {
-			throw new IllegalArgumentException("게시물 작성자만 삭제할 수 있습니다.");
+			throw new CustomException(PERMISSION_DENIED);
 		}
 
 		postRepository.delete(post);
@@ -57,7 +62,7 @@ public class PostService {
 
 	public PostDetailsResponseDto getpostDetials(Long postId, User user) {
 		Post post = postRepository.findById(postId)
-				.orElseThrow(() -> new IllegalArgumentException("해당 게시물이 존재하지 않습니다."));
+				.orElseThrow(NotFoundPostException::new);
 
 		return PostDetailsResponseDto.builder()
 				.title(post.getTitle())
