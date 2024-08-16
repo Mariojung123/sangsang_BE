@@ -38,13 +38,6 @@ public class ProblemController {
 
 	private final ProblemService problemService;
 
-
-
-	private String processCodeSubmission(Long problemId, String languageType, String userCode) {
-		// Simulate code execution or verification and return result
-		return "Processed code for problem ID " + problemId;
-	}
-
 	@Async
 	@PostMapping("/submit")
 	public CompletableFuture<ResponseEntity<String>> handleFileUpload(
@@ -68,18 +61,6 @@ public class ProblemController {
 
 		return ResponseEntity.ok(problemService.getProblemList(pageable));
 	}
-
-	/*@GetMapping("/topic")
-	public ResponseEntity<?> getProblemListByTopic(@RequestParam(defaultValue="login") String topic)
-	 {
-		return ResponseEntity.ok(problemService.getProblemListByTopic(topic));
-	}
-
-	@GetMapping("/difficulty")
-	public ResponseEntity<?> getProblemListByDfficulty(@RequestParam(defaultValue="EASY") String difficulty)
-	{
-		return ResponseEntity.ok(problemService.getProblemListByDifficulty(difficulty));
-	}*/
 	@Operation(summary="스켈레톤 코드 가져오기")
 	@GetMapping("/skeleton-code")
 	public ResponseEntity<String> getSkeletonCode(

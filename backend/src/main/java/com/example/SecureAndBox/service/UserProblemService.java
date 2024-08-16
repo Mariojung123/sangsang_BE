@@ -11,8 +11,12 @@ import com.example.SecureAndBox.dto.dashboard.ProblemDto;
 import com.example.SecureAndBox.entity.Problem;
 import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.entity.UserProblemRelation;
+import com.example.SecureAndBox.exception.post.NotFoundProblemException;
+import com.example.SecureAndBox.exception.user.NotFoundUserException;
+import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.repository.UserProblemRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -48,20 +52,31 @@ public class UserProblemService {
 
 		return dto;
 	}
-
+	@Transactional
 	public void saveRelation(UserProblemRelation up) {
-		if (up == null) {
-			throw new NullPointerException("UserProblemRelation cannot be null");
 
+		if(up.getUser()==null)
+		{
+			throw new NotFoundUserException();
+		}
+
+		if(up.getProblem()==null)
+		{
+			throw new NotFoundProblemException();
 		}
 		userProblemRepository.save(up);
 	}
 
+	@Transactional
 	public UserProblemRelation createUserProblem(User user, Problem problem)
-	{
-		if(user==null || problem==null)
+	{	if(user==null)
 		{
-			throw new NullPointerException("UserProblemRelation cannot be null");
+			throw new NotFoundUserException();
+		}
+
+		if(problem==null)
+		{
+			throw new NotFoundProblemException();
 		}
 
 		UserProblemRelation up = UserProblemRelation.builder()

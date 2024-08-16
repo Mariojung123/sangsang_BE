@@ -39,7 +39,7 @@ public class VideoController {
 	@PostMapping("")
 	public ResponseEntity<?> createVideo(@RequestBody VideoRequestDto request) {
 		try {
-			Video video = videoService.createVideo(request);
+			videoService.createVideo(request);
 			return ResponseEntity.ok("영상이 성공적으로 추가되었습니다.");
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("올바르지 않은 접근입니다.");

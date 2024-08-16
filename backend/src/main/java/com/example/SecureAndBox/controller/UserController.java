@@ -13,13 +13,6 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserRepository userRepository;
 
-   // private final UserService userService;
-
-    @PostMapping("/users/save")
-    public void personSave(@RequestBody User user) {
-        userRepository.save(user);
-
-    }
 
 
 }

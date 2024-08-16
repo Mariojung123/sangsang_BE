@@ -1,5 +1,7 @@
 package com.example.SecureAndBox.oauth.utils;
 
+import static com.example.SecureAndBox.exception.jwt.JwtExceptionExceptionCode.*;
+
 import java.security.Key;
 import java.util.Date;
 
@@ -7,8 +9,6 @@ import com.example.SecureAndBox.login.dto.response.JwtTokenResponseDto;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -18,12 +18,12 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.InvalidKeyException;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import com.example.SecureAndBox.login.domain.Constants;
 import com.example.SecureAndBox.entity.User;
+import com.example.SecureAndBox.login.exception.CustomException;
 
 @Slf4j
 @Component
@@ -70,10 +70,10 @@ public class JwtUtil implements InitializingBean {
 				.getBody();
 		} catch (ExpiredJwtException ex) {
 			// Re-throw the exception with additional context
-			throw new ExpiredJwtException(ex.getHeader(), ex.getClaims(), "Token has expired");
+			throw new CustomException(EXPIRED_TOKEN);
 		} catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
 			// Provide a specific message for the invalid key
-			throw new InvalidKeyException("Invalid JWT key or claims");
+			throw new CustomException(INVALID_TOKEN);
 		}
 	}
 

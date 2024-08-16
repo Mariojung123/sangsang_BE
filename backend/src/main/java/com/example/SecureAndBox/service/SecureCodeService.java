@@ -97,9 +97,9 @@ public class SecureCodeService {
 	private String handleServerResponse(String responseBody,UserProblemRelation up) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
 		try {
-			if (jsonNode.has("message") && jsonNode.get("output").asText().contains("hacked")) {
+			if (jsonNode.has("message") && jsonNode.has("output") && jsonNode.get("output").asText().contains("hacked")) {
 				return responseBody;
-			} else if(jsonNode.has("message") && jsonNode.get("output").asText().contains("you protected")) {
+			} else if(jsonNode.has("message") &&  jsonNode.has("output") && jsonNode.get("output").asText().contains("you protected")) {
 				userProblemService.saveRelation(up);
 				return responseBody;
 			}else if(jsonNode.has("error") && jsonNode.get("message").asText().contains("Incorrect syntax in function")) {
@@ -118,7 +118,7 @@ public class SecureCodeService {
 			return "Unexpected response format.";
 		} catch (Exception e) {
 
-			return responseBody;
+			return responseBody + e.getMessage();
 		}
 	}
 }

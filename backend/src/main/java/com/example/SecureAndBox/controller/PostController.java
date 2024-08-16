@@ -36,11 +36,6 @@ public class PostController {
 		@Parameter(hidden = true) @UserId User user,
 		@RequestBody PostRequestDto postDto) {
 		String description = Jsoup.clean(postDto.getContent(), Safelist.basic());
-
-
-
-
-
 		postService.createPost(postDto,description, user);
 
 		return ResponseEntity.ok().build();
@@ -54,7 +49,7 @@ public class PostController {
 
 
 	@Operation(summary = "게시물 삭제")
-	@DeleteMapping("/delete/{postId}")
+	@DeleteMapping("/delete")
 	public ResponseEntity<?> deletePost(@Parameter(hidden = true) @UserId User user,
 		@RequestParam Long postId){
 
@@ -63,7 +58,7 @@ public class PostController {
 		return ResponseEntity.ok().build();
 	}
 
-	@Operation(summary = "게시물 보기")
+	@Operation(summary = "게시물 상세보기")
 	@GetMapping("/read")
 	public ResponseEntity<?> readPost(@Parameter(hidden = true) @UserId User user,
 		@RequestParam Long postId){
