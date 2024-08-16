@@ -1,5 +1,8 @@
 package com.example.SecureAndBox.entity;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,11 +32,13 @@ public class UserProblemRelation {
 
 	@ManyToOne
 	@JoinColumn(name = "userId", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private User user;
 
 
 	@ManyToOne
 	@JoinColumn(name = "problemId", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Problem problem;
 
 

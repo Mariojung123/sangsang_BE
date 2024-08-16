@@ -19,7 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
+import com.example.SecureAndBox.entity.User;
 import com.example.SecureAndBox.login.domain.Constants;
 import com.example.SecureAndBox.oauth.security.filter.JwtAuthenticationFilter;
 import com.example.SecureAndBox.oauth.security.filter.CustomJwtAuthenticationEntryPoint;
@@ -48,6 +48,12 @@ public class SecurityConfig {
 		"/swagger-ui.html"
 	};
 
+	private static final String[] ADMIN_PATTERNS = {
+		"/api/video/**"
+	};
+
+
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
@@ -68,6 +74,7 @@ public class SecurityConfig {
 				authorizationManagerRequestMatcherRegistry
 					.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
 					.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
+				//	.requestMatchers(ADMIN_PATTERNS).hasRole(User.Role.ADMIN.name())
 					.anyRequest().authenticated())
 		//	.headers(headers -> headers  //xss 방지
 		//		.contentSecurityPolicy(csp -> csp
