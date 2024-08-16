@@ -113,10 +113,10 @@ public class SecureCodeService {
 			if (jsonNode.has("message") && jsonNode.has("output")) {
 				String output = jsonNode.get("output").asText();
 				if (output != null && output.contains("hacked")) {
-					return responseBody;
+					return output;
 				} else if (output != null && output.contains("you protected")) {
 					userProblemService.saveRelation(up);
-					return responseBody;
+					return output;
 				}
 			}
 
@@ -125,10 +125,10 @@ public class SecureCodeService {
 					String message = jsonNode.get("message").asText();
 					System.out.println("message: " + message);
 					if (message.equals("Incorrect syntax in function")) {
-						return responseBody;
+						return message;
 					} else if (message.equals("Invalid code")) {
 						String output = jsonNode.has("output") ? jsonNode.get("output").asText() : "No output";
-						return responseBody;
+						return message;
 					}
 				}
 				String errorDetails = jsonNode.get("error") != null ? jsonNode.get("error").asText() : "Unknown error";
