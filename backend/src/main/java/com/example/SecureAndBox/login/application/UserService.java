@@ -19,6 +19,11 @@ public class UserService {
 			.orElseThrow(NotFoundUserException::new);
 	}
 
+	public User findByRefreshToken(String refreshToken) {
+		return userRepository.findByRefreshToken(refreshToken)
+			.orElseThrow(NotFoundUserException::new);
+	}
+
 
 
 

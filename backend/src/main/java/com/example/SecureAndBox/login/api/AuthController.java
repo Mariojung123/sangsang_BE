@@ -7,10 +7,13 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import com.example.SecureAndBox.login.application.LoginAttemptService;
+import com.example.SecureAndBox.login.application.UserService;
 import com.example.SecureAndBox.login.dto.response.JwtTokenResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -19,8 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,18 +31,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.SecureAndBox.login.application.AuthService;
 import com.example.SecureAndBox.login.application.KakaoLoginService;
-import com.example.SecureAndBox.login.application.UserService;
 import com.example.SecureAndBox.login.domain.enums.Provider;
 import com.example.SecureAndBox.login.dto.request.LoginDto;
 import com.example.SecureAndBox.login.dto.request.LoginRequestDto;
 import com.example.SecureAndBox.login.dto.request.SignUpDto;
-import com.example.SecureAndBox.login.dto.response.JwtTokenResponse;
 import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.oauth.dto.KakaoTokenResponse;
 import com.example.SecureAndBox.oauth.security.info.UserAuthentication;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,14 +52,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "Auth", description = "카카오 로그인 api / 담당자 : 이영학")
 public class AuthController {
+	private static final int MAX_ATTEMPTS = 5;
+	private Map<String, Integer> loginAttempts = new ConcurrentHashMap<>();
 
 	private final AuthService authService;
 	private final KakaoLoginService kakaoLoginService;
-
 	private final UserService userService;
-
-	private final PasswordEncoder passwordEncoder;
-
+	private final LoginAttemptService loginAttemptService;
 	private static final Logger logger = Logger.getLogger(AuthController.class.getName());
 
 
@@ -91,9 +91,20 @@ public class AuthController {
 	@Operation(summary = "로그인 -> 아이디 로그인")
 	@PostMapping("/login")
 	public ResponseEntity<?> login(
+		HttpServletRequest request,
 		@Valid @RequestBody LoginDto dto
 	)
 	{
+		String clientIp = request.getRemoteAddr();
+		int maxAttempts = 5;
+		int currentAttempts = loginAttemptService.getAttempts(clientIp);
+		System.out.println("ip: "+clientIp+"currentAttempts: "+currentAttempts);
+
+		if (currentAttempts >= maxAttempts) {
+			return ResponseEntity.status(HttpStatus.LOCKED).body("계정이 잠겼습니다. 관리자에게 문의하세요.");
+		}
+
+
 		String id = dto.getUsername();
 		String pw = dto.getPw();
 		// 유효성 검사
@@ -164,15 +175,27 @@ public class AuthController {
 	}*/
 	@Operation(summary = "카카오 로그인 토큰 받아오기 -> 인가코드 주입하고 토큰 받기")
 	@GetMapping("/callback")
-	public ResponseEntity<String> kakaoCallback(@RequestParam String code) {
+	public ResponseEntity<String> kakaoCallback(HttpServletRequest request, @RequestParam String code) {
 		ResponseEntity<String> response;
+		String clientIp = request.getRemoteAddr(); // 클라이언트 IP 주소 가져오기
+
 		try {
+			// 로그인 시도 횟수 제한 로직
+			int maxAttempts = 5;
+			int currentAttempts = loginAttemptService.getAttempts(clientIp);
+
+			if (currentAttempts >= maxAttempts) {
+				return ResponseEntity.status(HttpStatus.LOCKED)
+					.body("<script>alert('계정이 잠겼습니다. 관리자에게 문의하세요.'); window.close();</script>");
+			}
+
 			// 카카오 API를 사용하여 액세스 토큰 및 리프레시 토큰 가져오기
 			KakaoTokenResponse accessToken = kakaoLoginService.getAccessToken(code, apiKey, redirectUri);
-			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null); // Name은 여기서 null로 설정
-			//sparrow 로그인루틴 처리 필요
+			LoginRequestDto requestDto = new LoginRequestDto(Provider.KAKAO, null); // Name은 여기서 null로 설정
+
 			// JWT 토큰 생성
-			JwtTokenResponseDto tokens = authService.login(accessToken, request);
+			JwtTokenResponseDto tokens = authService.login(accessToken, requestDto);
+			loginAttemptService.clearAttempts(clientIp); // 성공 시 시도 횟수 초기화
 
 			// 토큰 정보를 JavaScript에 주입하여 HTML 반환
 			String htmlContent = String.format("""
@@ -183,29 +206,32 @@ public class AuthController {
                     refreshToken: '%s',
                 };
                 window.opener.postMessage(userInfo, "*");
-               
             </script>
             """, tokens.getAccessToken(), tokens.getRefreshToken());
 
 			response = ResponseEntity.ok()
-					.contentType(MediaType.TEXT_HTML)
-					.body(htmlContent);
+				.contentType(MediaType.TEXT_HTML)
+				.body(htmlContent);
 
 		} catch (AuthenticationException e) {
+			loginAttemptService.incrementAttempts(clientIp); // 실패 시 시도 횟수 증가
 			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
-			response = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("<script>alert('Authentication failed.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body("<script>alert('Authentication failed.'); window.close();</script>");
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "IO error during Kakao callback processing: " + e.getMessage(), e);
-			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('Internal server error.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("<script>alert('Internal server error.'); window.close();</script>");
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Unexpected error during Kakao callback processing: " + e.getMessage(), e);
-			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("<script>alert('An unexpected error occurred.'); window.close();</script>");
+			response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("<script>alert('An unexpected error occurred.'); window.close();</script>");
 		}
 		return response;
 	}
 
 
-
+	@Hidden
 	@Operation(summary = "카카오 로그아웃 하기")
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout() {
@@ -216,12 +242,36 @@ public class AuthController {
 
 	@Operation(summary = "카카오 로그인 리프레시 토큰 받기")
 	@PostMapping("/refresh-kakao-token")
-	public ResponseEntity<?> refreshKakaoToken(@RequestParam String refreshToken) throws IOException {
-		KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
-		LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null);
-		//sparrow 로그인루틴 처리 필요
-		JwtTokenResponseDto tokens = authService.login(response, request);
-		return ResponseEntity.ok((tokens));
+	public ResponseEntity<?> refreshKakaoToken(HttpServletRequest requests,
+		@RequestParam String refreshToken) throws IOException {
+		ResponseEntity<?> serverResponse;
+		String clientIp = requests.getRemoteAddr();
+		int maxAttempts = 5;
+		int currentAttempts = loginAttemptService.getAttempts(clientIp);
+
+		if (currentAttempts >= maxAttempts) {
+			return ResponseEntity.status(HttpStatus.LOCKED).body("계정이 잠겼습니다. 관리자에게 문의하세요.");
+		}
+
+
+		try {
+			KakaoTokenResponse response = kakaoLoginService.refreshKakaoToken(refreshToken);
+			LoginRequestDto request = new LoginRequestDto(Provider.KAKAO, null);
+			JwtTokenResponseDto tokens = authService.login(response, request);
+
+
+
+			serverResponse= ResponseEntity.ok(tokens);
+		} catch (AuthenticationException e) {
+			loginAttemptService.incrementAttempts(clientIp); // 실패 시 시도 횟수 증가
+			logger.log(Level.WARNING, "Authentication failed: " + e.getMessage(), e);
+			serverResponse = (ResponseEntity<?>)ResponseEntity.status(HttpStatus.UNAUTHORIZED);
+		}
+		return serverResponse;
+	}
+
+	private String getUserIdFromToken(String token) {
+		return userService.findByRefreshToken(token).getUserId().toString();
 	}
 
 }

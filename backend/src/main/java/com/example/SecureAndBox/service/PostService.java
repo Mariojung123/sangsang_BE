@@ -20,6 +20,7 @@ import com.example.SecureAndBox.exception.post.NotFoundProblemException;
 import com.example.SecureAndBox.login.exception.CustomException;
 import com.example.SecureAndBox.repository.PostRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class PostService {
 	private final PostRepository postRepository;
 	private final ProblemService problemService;
+	@Transactional
 	public void createPost(PostRequestDto postDto, String description, User user) {
 
 		if(postDto.getParent() != 0) {
@@ -48,7 +50,7 @@ public class PostService {
 		postRepository.save(post);
 
 	}
-
+	@Transactional
 	public void deletePost(Long postId, User user) {
 		Post post = postRepository.findById(postId)
 				.orElseThrow(NotFoundPostException::new);

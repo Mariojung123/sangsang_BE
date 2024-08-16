@@ -1,6 +1,8 @@
 package com.example.SecureAndBox.controller;
 
 import org.jsoup.safety.Safelist;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,17 +30,33 @@ import org.jsoup.Jsoup;
 @RequiredArgsConstructor
 public class PostController {
 	private final PostService postService;
-	private final CommentService commentService;
-
 	@Operation(summary = "게시물 생성")
 	@PostMapping("/create")
 	public ResponseEntity<?> createPost(
 		@Parameter(hidden = true) @UserId User user,
 		@Valid @RequestBody PostRequestDto postDto) {
-		String description = Jsoup.clean(postDto.getContent(), Safelist.basic()); //XSS 방지
-		postService.createPost(postDto,description, user);
 
-		return ResponseEntity.ok().build();
+		String description = Jsoup.clean(postDto.getContent(), Safelist.basic()); //XSS 방지
+
+		ResponseEntity<?> responseEntity;
+		try {
+			postService.createPost(postDto, description, user);
+			responseEntity= ResponseEntity.ok().build();
+
+		} catch (IllegalArgumentException e) {
+			// 잘못된 인자에 대한 처리
+			responseEntity= ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 요청입니다. " + e.getMessage());
+
+		} catch (DataIntegrityViolationException e) {
+			// 데이터 무결성 위반에 대한 처리
+			responseEntity= ResponseEntity.status(HttpStatus.CONFLICT).body("데이터 무결성 오류가 발생했습니다.");
+
+		} catch (Exception e) {
+			// 그 외 예외 처리
+			responseEntity= ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+
+		}
+		return responseEntity;
 	}
 
 	@Operation(summary = "게시물 작성 시 parent 불러오기")
@@ -53,16 +71,31 @@ public class PostController {
 	public ResponseEntity<?> deletePost(@Parameter(hidden = true) @UserId User user,
 		@RequestParam Long postId){
 
-
+		ResponseEntity<?> responseEntity;
+	try{
 		postService.deletePost(postId, user);
-		return ResponseEntity.ok().build();
+		responseEntity=ResponseEntity.ok().build();
+
+		} catch (IllegalArgumentException e) {
+		// 잘못된 인자에 대한 처리
+		responseEntity= ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 요청입니다. " + e.getMessage());
+
+		} catch (DataIntegrityViolationException e) {
+		// 데이터 무결성 위반에 대한 처리
+		responseEntity= ResponseEntity.status(HttpStatus.CONFLICT).body("데이터 무결성 오류가 발생했습니다.");
+
+		} catch (Exception e) {
+		// 그 외 예외 처리
+		responseEntity= ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+
+		}
+		return responseEntity;
 	}
 
 	@Operation(summary = "게시물 상세보기")
 	@GetMapping("/read")
 	public ResponseEntity<?> readPost(@Parameter(hidden = true) @UserId User user,
 		@RequestParam Long postId){
-
 
 		return ResponseEntity.ok(postService.getpostDetials(postId,user));
 	}

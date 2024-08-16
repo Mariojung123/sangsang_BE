@@ -66,11 +66,7 @@ public class SecureCodeService {
 				// Send the request asynchronously
 				return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
 					.thenApply(response -> {
-						try {
-							return handleServerResponse(response.body(),up);
-						} catch (JsonProcessingException e) {
-							throw new RuntimeException(e);
-						}
+						return handleServerResponse(response.body(),up);
 					})
 					.exceptionally(ex -> {
 						throw new CompletionException("Error during HTTP request", ex);
@@ -103,44 +99,49 @@ public class SecureCodeService {
 	}
 
 	// Handle server response
-	private String handleServerResponse(String responseBody, UserProblemRelation up) throws JsonProcessingException {
-		System.out.println("Server response: " + responseBody);
+	private String handleServerResponse(String responseBody, UserProblemRelation up) {
+		String result;
 
 		try {
 			JsonNode jsonNode = objectMapper.readTree(responseBody);
-			System.out.println("jsonNode: " + jsonNode);
 
-			if (jsonNode.has("message") && jsonNode.has("output")) {
+			if (jsonNode.has("message") && jsonNode.has("output") && jsonNode.has("url")) {
 				String output = jsonNode.get("output").asText();
-				if (output != null && output.contains("hacked")) {
-					return output;
-				} else if (output != null && output.contains("you protected")) {
+				String url = jsonNode.get("url").asText();
+				if (output != null && url != null && output.contains("hacked")) {
+					result = output + "\n" + url;
+				} else if (output != null && url != null && output.contains("you protected")) {
 					userProblemService.saveRelation(up);
-					return output;
+					result = output + "\n" + url;
+				} else {
+					result = "Unexpected response format.";
 				}
-			}
-
-			if (jsonNode.has("error")) {
+			} else if (jsonNode.has("error")) {
 				if (jsonNode.has("message") && jsonNode.get("message") != null) {
 					String message = jsonNode.get("message").asText();
-					System.out.println("message: " + message);
 					if (message.equals("Incorrect syntax in function")) {
-						return message;
+						result = message;
 					} else if (message.equals("Invalid code")) {
 						String output = jsonNode.has("output") ? jsonNode.get("output").asText() : "No output";
-						return message;
+						result = message;
+					} else {
+						result = responseBody + "\n\nError: " + message;
 					}
+				} else {
+					String errorDetails = jsonNode.get("error") != null ? jsonNode.get("error").asText() : "Unknown error";
+					result = responseBody + "\n\nError: " + errorDetails;
 				}
-				String errorDetails = jsonNode.get("error") != null ? jsonNode.get("error").asText() : "Unknown error";
-				return responseBody + "\n\nError: " + errorDetails;
+			} else {
+				result = "Unexpected response format.";
 			}
-
-			return "Unexpected response format.";
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
-			return "Error processing response: " + e.getMessage();
+			result = "Error processing response: " + e.getMessage();
 		}
+
+		return result;
 	}
+
 }
 
 
