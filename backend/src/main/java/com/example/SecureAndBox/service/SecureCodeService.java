@@ -103,21 +103,22 @@ public class SecureCodeService {
 				userProblemService.saveRelation(up);
 				return responseBody;
 			}else if(jsonNode.has("error") && jsonNode.get("message").asText().contains("Incorrect syntax in function")) {
-				return "기능 구현에 실패하였습니다.";
+				return "기능 구현에 실패하였습니다."+"\n\n"+responseBody;
 			}
 			else {
 				if (jsonNode.has("error") && jsonNode.get("message").asText().contains("Invalid code")) {
 					String output = jsonNode.get("output").asText();
-					return "빌드에 실패하였습니다. 코드를 다시 확인해주세요. Details: " + output;
+					return responseBody +"\n\n빌드에 실패하였습니다. 코드를 다시 확인해주세요. Details: " + output;
 				}
 				else if (jsonNode.has("error")) {
 					String errorDetails = jsonNode.get("error").asText();
-					return "Error: " + errorDetails;
+					return responseBody +"\n\nError: " + errorDetails;
 				}
 			}
 			return "Unexpected response format.";
 		} catch (Exception e) {
-			return "Error processing server response: " + e.getMessage();
+
+			return responseBody;
 		}
 	}
 }
