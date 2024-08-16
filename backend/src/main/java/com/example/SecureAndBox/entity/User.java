@@ -20,7 +20,8 @@ public class User {
     private Long userId;
 
 
-    @Column()
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Column(nullable = false)
